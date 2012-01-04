@@ -1,49 +1,53 @@
 
 import scala.collection.mutable.Set
 
-object Grammar { 
+object GRAM { 
   
   abstract class Entry 
   case class NT(rew:Product,p:Double) extends Entry 
   case class T(t1:String, p:Double) extends Entry
+  
+  class Grammar {
 
-  val productions = Map(
-    "S" -> List((("N","V"),1.0)), 
-    "V" -> List((("V","N"),0.6), 
-		(("V","PP"),0.4),
-		(("eats"),0.4), 
-		(("loves"),0.3), 
-		(("hates"),0.3)),
-    "N" -> List((("N","P"),0.2), 
-		(("she"),0.1), 
-		(("he"),0.1), 
-		(("pizza"),0.1),
-		(("anchovies"),0.1),
-		(("meat"),0.1), 
-		(("bread"), 0.1), 
-		(("cheese"),0.1)),
-    "P" -> List((("PP","N"),1.0)),
-    "PP"-> List((("without"),0.4),
-		(("with"),0.2), 
-		(("on"),0.4)),
-    "OP"-> List((("N","P"),1.0)))
+    val productions = Map(
+      "S" -> List((("N","V"),1.0)), 
+      "V" -> List((("V","N"),0.6), 
+		  (("V","PP"),0.4),
+		  (("eats"),0.4), 
+		  (("loves"),0.3), 
+		  (("hates"),0.3)),
+      "N" -> List((("N","P"),0.2), 
+		  (("she"),0.1), 
+		  (("he"),0.1), 
+		  (("pizza"),0.1),
+		  (("anchovies"),0.1),
+		  (("meat"),0.1), 
+		  (("bread"), 0.1), 
+		  (("cheese"),0.1)),
+      "P" -> List((("PP","N"),1.0)),
+      "PP"-> List((("without"),0.4),
+		  (("with"),0.2), 
+		  (("on"),0.4)),
+      "OP"-> List((("N","P"),1.0)))
 
-  val Nterminals = productions.keys
-  var tList : Set[Any] = Set()
-  var revMap : Map[Any,Set[Product]] = Map()
-
-  def init  = for ((x,y) <- productions) {
-    for (item <- y){
-      tList += item._1
-      if (!revMap.contains(item._1)){ 
-	revMap += (item._1 -> Set((x,item._2)))
+    val Nterminals = productions.keys
+    var tList : Set[Any] = Set()
+    var revMap : Map[Any,Set[Product]] = Map()
+    
+    def init  = for ((x,y) <- productions) {
+      for (item <- y){
+	tList += item._1
+	if (!revMap.contains(item._1)){ 
+	  revMap += (item._1 -> Set((x,item._2)))
+	}
+	else {revMap(item._1) += ((x,item._2))}
       }
-      else {revMap(item._1) += ((x,item._2))}
     }
+    
   }
 
-
 }
+
 
 
 
