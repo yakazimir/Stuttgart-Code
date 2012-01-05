@@ -6,18 +6,41 @@ object CYK {
 
   case class Entry(pos:Product, value:Set[String])
 
+  def makeP(acc:Set[Any],se:Set[Any]) = 
+    for (a <- acc; s <- se) yield {(a,s)}
+
   val gram = new Grammar
   gram.init
-
+  
   class Parser (gram:Grammar,in:Input, table:Chart){
     val input = in.pos 
 
-    
+    private def allSpan(k : Int, z : Int, j : Int){
+      try {
+	var x = table.x((k,z)); var y = table.x((z,j)) 
+
+	def prod(pair : Set[Product]) = { 
+	  var ter : Set[Any] = Set() 
+	  for (i <- pair) ter += i.productElement(0);ter
+	}
+
+	println(prod(x));println(prod(y))
+	println(makeP(prod(x),prod(y)))
+       
+      }
+      
+      catch { 
+	case eof: java.util.NoSuchElementException => 
+	  None
+      }
+    }
+
     private def inParse(i:Int,j:Int) { 
       var k : Int  = j - 2 
       while (k > - 1){ 
 	var z : Int = k+1; println(k) 
-	while (z < j) { 
+	while (z < j) {
+	  allSpan(k,z,j)
 	  println("\t"+z)
 	  z += 1
 	}
@@ -41,7 +64,7 @@ object CYK {
   class Input(x:String) { 
 
     val pos : List[String] = (x.split(" ")).toList
-    //val original = println("input: "+x)
+    val original = "input: "+ x
 
     def inWSpans {
       for (word <- pos) {
@@ -81,8 +104,3 @@ object CYK {
   }
 
 }
-
-
-
-//println(input)
-    //println(gram.tList)
