@@ -9,16 +9,16 @@ object CYK {
   val gram = new Grammar
   gram.init
 
-  class Parser (gram:Grammar,in:Input, ta:Chart){
+  class Parser (gram:Grammar,in:Input, table:Chart){
     val input = in.pos 
-    val table = ta.x
 
     def Parse {
-      for (i <- input) {
-	if ((gram.tList).contains(i)){ 
-	  println("yes")
+      for (word <- input) {
+	if ((gram.tList).contains(word)){ 
+	  var i = input.indexOf(word); var j=i+1
+	  table.Add((i,j),word)
 	}     
-	else {println("not in grammar")}
+	else {println("not in grammar")} 
       }     
     }
   }
@@ -29,12 +29,18 @@ object CYK {
   }
 
   class Chart { 
+
     val x:Map[Product,Set[String]] = Map()
     
+    def Add(pos: Product, in : String) {
+      (gram.revMap).get(in) match { 
+	case Some(entry) => println(entry);println(pos)
+	case None => println("an error occurred")
+      }
 
+    }
   } 
   
- 
   def main(args: Array[String]){ 
     println("============\n\n============")
     var x:String = ""
