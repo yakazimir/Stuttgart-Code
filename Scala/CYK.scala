@@ -1,7 +1,8 @@
 import GRAM.Grammar
 import scala.util.control.Breaks._
 import scala.collection.mutable.{Set,Map}
-import java.util.Formatter._
+//import java.util.Formatter._
+//import java.lang.Runtime._
 
 object CYK {
 
@@ -39,10 +40,10 @@ object CYK {
 
     private def inParse(i:Int,j:Int) { 
       var k : Int  = j - 2 
-      while (k > - 1){ 
+      while (k > - 1){
 	var z : Int = k+1
 	while (z < j) {
-	  allSpan(k,z,j);z += 1
+	  allSpan(k,z,j); z += 1	
 	}
 	k -= 1
       }
@@ -50,28 +51,27 @@ object CYK {
     
     def Parse {
       for (word <- input) {
-	if ((gram.tList).contains(word)){ 
-	  var i = input.indexOf(word); var j=i+1
-	  table.lAdd((i,j),word); inParse(i,j)
+	if ((gram.tList).contains(word._1)){ 
+	  var i = word._2; var j = i+1
+	  //var i = input.indexOf(word); var j=i+1
+	  table.lAdd((i,j),word._1); inParse(i,j)
 	}     
 	else {println("not in grammar")} 
       }     
     }
   }
 
-  class Input(x:String) { 
+  class Input(x : String) { 
 
-    val pos : List[String] = (x.split(" ")).toList
+    val pos = ((x.split(" ")).toList).zipWithIndex
     val original = "input: "+ x
 
     def inWSpans {
-      print("\n")
       for (word <- pos) {
-	var f = pos.indexOf(word); print(f+" "+word+" ")
+	var f = word._2; print(f+" "+word._1+" ")
       }
       print(pos.length+"\n"); print("\n")
     } 
-    inWSpans
 
   }
 
@@ -83,18 +83,39 @@ object CYK {
 
     def lAdd(pos: Product, in : String) {
       (gram.revMap).get(in) match { 
-	case Some(entry) => x += (pos -> entry)
-	case None => println("an error occurred");break
+	case Some(entry) 
+	  => x += (pos -> entry)
+	case None 
+	  => println("an error occurred");break
       }
     }
 
     def pAdd(pos: Product, in : Set[(Any,Any)]) { 
       for (item <- in) { 
 	(gram.revMap).get(item) match { 
-	  case Some(entry) => x += (pos -> entry)
-	  case None => None
+	  case Some(entry) 
+	    => x += (pos -> entry)
+	  case None 
+	    => None
 	}
-      }      
+      }    
+    }
+
+    def printChart(in : Input)  = { 
+      print("input: "); in.inWSpans
+
+      for (i <- 0 to ((in.pos).length)-1) { 
+	print(i)
+	for (j <- 1 to ((in.pos).length)){ 
+
+	  x.get((i,j)) match{ 
+	    case Some(item) => print(" "+item+" "+j)
+	    case None => print(" "+"Nil"+" "+j)
+	  }
+	}
+	print("\n") 
+      }
+      print("\n")
     }
 
   } 
@@ -107,9 +128,10 @@ object CYK {
       var chart = new Chart; var input = new Input(x.toLowerCase)
       var parser = new Parser(gram, input, chart)
       var timeFun : Double = time(parser.Parse)
-      println("CPU Time: " + timeFun / 1000.0); println(chart.x)
+      println("CPU Time: " + timeFun / 1000.0); chart.printChart(input)
       
     }    
   }
 
 }
+
