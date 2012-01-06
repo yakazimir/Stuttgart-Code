@@ -1,6 +1,7 @@
 import GRAM.Grammar
 import scala.util.control.Breaks._
 import scala.collection.mutable.{Set,Map}
+import java.util.Formatter._
 
 object CYK {
 
@@ -9,6 +10,11 @@ object CYK {
   def makeP(acc:Set[Any],se:Set[Any]) = 
     for (a <- acc; s <- se) yield {(a,s)}
 
+  def time(f: => Unit)= {
+	val s = System.currentTimeMillis; f
+	System.currentTimeMillis - s
+  }
+ 
   val gram = new Grammar
   gram.init
   
@@ -57,12 +63,13 @@ object CYK {
 
     val pos : List[String] = (x.split(" ")).toList
     val original = "input: "+ x
+
     def inWSpans {
+      print("\n")
       for (word <- pos) {
-	var f = pos.indexOf(word) 
-	print(f+" "+word+" ")
+	var f = pos.indexOf(word); print(f+" "+word+" ")
       }
-      print(pos.length+"\n")
+      print(pos.length+"\n"); print("\n")
     } 
     inWSpans
 
@@ -97,10 +104,10 @@ object CYK {
     var x:String = ""
     while (x != "Q"){ 
       print("PARSE> "); var x = readLine()
-      var chart = new Chart
-      var input = new Input(x.toLowerCase)
+      var chart = new Chart; var input = new Input(x.toLowerCase)
       var parser = new Parser(gram, input, chart)
-      parser.Parse; println(chart.x)
+      var timeFun : Double = time(parser.Parse)
+      println("CPU Time: " + timeFun / 1000.0); println(chart.x)
       
     }    
   }
