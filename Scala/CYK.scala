@@ -1,13 +1,16 @@
 import GRAM.Grammar
 import scala.util.control.Breaks._
 import scala.collection.mutable.{Set,Map}
+import scala.io.Source
+
 //import java.util.Formatter._
 //import java.lang.Runtime._
 
 object CYK {
-
-  case class Entry(pos:Product, value:Set[String])
-
+  
+  val gram = new Grammar; gram.init
+  val file = Source.fromFile("sentences.txt").getLines.toList
+   
   def makeP(acc:Set[Any],se:Set[Any]) = 
     for (a <- acc; s <- se) yield {(a,s)}
 
@@ -16,9 +19,6 @@ object CYK {
 	System.currentTimeMillis - s
   }
  
-  val gram = new Grammar
-  gram.init
-  
   class Parser (gram:Grammar,in:Input, table:Chart){
     
     val input = in.pos 
@@ -38,7 +38,7 @@ object CYK {
       }
     }
 
-    private def inParse(i:Int,j:Int) { 
+    private def inParse(i : Int,j : Int) { 
       var k : Int  = j - 2 
       while (k > - 1){
 	var z : Int = k+1
@@ -53,7 +53,6 @@ object CYK {
       for (word <- input) {
 	if ((gram.tList).contains(word._1)){ 
 	  var i = word._2; var j = i+1
-	  //var i = input.indexOf(word); var j=i+1
 	  table.lAdd((i,j),word._1); inParse(i,j)
 	}     
 	else {println("not in grammar")} 
@@ -72,7 +71,6 @@ object CYK {
       }
       print(pos.length+"\n"); print("\n")
     } 
-
   }
 
   class Chart { 
@@ -119,19 +117,20 @@ object CYK {
     }
 
   } 
-  
-  def main(args: Array[String]){ 
-    println("============\n\n============")
-    var x:String = ""
-    while (x != "Q"){ 
-      print("PARSE> "); var x = readLine()
-      var chart = new Chart; var input = new Input(x.toLowerCase)
-      var parser = new Parser(gram, input, chart)
-      var timeFun : Double = time(parser.Parse)
-      println("CPU Time: " + timeFun / 1000.0); chart.printChart(input)
-      
-    }    
-  }
 
-}
+  def main(args: Array[String]){ 
+    for (sentence <- file) { 
+      var chart = new Chart; var input = new Input(sentence.toLowerCase) 
+      var parser = new Parser(gram,input, chart) 
+      var timeFun : Double = time(parser.Parse)
+      
+      println("CPU Time: " + timeFun / 1000.0); chart.printChart(input)
+
+    }
+
+  }   
+}    
+
+
+
 
