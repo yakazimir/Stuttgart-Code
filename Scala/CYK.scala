@@ -25,12 +25,12 @@ object CYK {
     
     private def allSpan(k : Int, z : Int, j : Int){
       try {
-	var x = table.x((k,z)); var y = table.x((z,j)) 
+	var x = table.position((k,z)); var y = table.position((z,j)) 
 	def prod(pair : Set[Product]) = { 
 	  var ter : Set[Any] = Set() 
 	  for (i <- pair) ter += i.productElement(0);ter
 	}
-	table.pAdd((k,j),makeP(prod(x),prod(y)))
+	for(pair <- makeP(prod(x),prod(y))) table.Add((k,j),pair)
       }
       catch { 
 	case eof: java.util.NoSuchElementException => 
@@ -53,7 +53,7 @@ object CYK {
       for (word <- input) {
 	if ((gram.tList).contains(word._1)){ 
 	  var i = word._2; var j = i+1
-	  table.lAdd((i,j),word._1); inParse(i,j)
+	  table.Add((i,j),word._1); inParse(i,j)
 	}     
 	else {println("not in grammar")} 
       }     
@@ -75,28 +75,25 @@ object CYK {
 
   class Chart { 
 
-    val x:Map[Product,Set[Product]] = Map()   
-    
-    //section function should be merged with first
+    val position : Map[Product,Set[Product]] = Map()
+    var parseForest : List[Product] = List()
+   
+    //maybe add without probabilities to chart
 
-    def lAdd(pos: Product, in : String) {
+    def Add(pos: Product, in : Any) {
       (gram.revMap).get(in) match { 
 	case Some(entry) 
-	  => x += (pos -> entry)
+	  => position += (pos -> entry); print(entry)
 	case None 
-	  => println("an error occurred");break
+	  => None
       }
     }
 
-    def pAdd(pos: Product, in : Set[(Any,Any)]) { 
-      for (item <- in) { 
-	(gram.revMap).get(item) match { 
-	  case Some(entry) 
-	    => x += (pos -> entry)
-	  case None 
-	    => None
-	}
-      }    
+    private def writeParseForest {
+      
+      
+      // THIS IS WHERE 
+
     }
 
     def printChart(in : Input)  = { 
@@ -106,7 +103,7 @@ object CYK {
 	print(i)
 	for (j <- 1 to ((in.pos).length)){ 
 
-	  x.get((i,j)) match{ 
+	  position.get((i,j)) match{ 
 	    case Some(item) => print(" "+item+" "+j)
 	    case None => print(" "+"Nil"+" "+j)
 	  }

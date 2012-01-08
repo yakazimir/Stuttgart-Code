@@ -12,10 +12,11 @@ object GRAM {
     val productions = Map(
       "S" -> List((("N","V"),1.0)), 
       "V" -> List((("V","N"),0.6), 
-		  (("V","PP"),0.4),
+		  (("V","OP"),0.4),
 		  (("eats"),0.4), 
 		  (("loves"),0.3), 
 		  (("hates"),0.3)),
+		  //(("pizza"),0.2)),
       "N" -> List((("N","P"),0.2), 
 		  (("she"),0.1), 
 		  (("he"),0.1), 
@@ -44,8 +45,8 @@ object GRAM {
       }
     }
     
-  }
 
+  }
 }
 
 
