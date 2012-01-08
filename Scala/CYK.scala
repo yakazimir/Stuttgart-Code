@@ -11,7 +11,7 @@ object CYK {
   val gram = new Grammar; gram.init
   val file = Source.fromFile("sentences.txt").getLines.toList
    
-  def makeP(acc:Set[Any],se:Set[Any]) = 
+  def makeP(acc:Set[String],se:Set[String]) = 
     for (a <- acc; s <- se) yield {(a,s)}
 
   def time(f: => Unit)= {
@@ -26,9 +26,9 @@ object CYK {
     private def allSpan(k : Int, z : Int, j : Int){
       try {
 	var x = table.position((k,z)); var y = table.position((z,j)) 
-	def prod(pair : Set[Product]) = { 
-	  var ter : Set[Any] = Set() 
-	  for (i <- pair) ter += i.productElement(0);ter
+	def prod(pair : Set[String]) = { 
+	  var ter : Set[String] = Set() 
+	  for (i <- pair) ter += i;ter
 	}
 	for(pair <- makeP(prod(x),prod(y))) table.Add((k,j),pair)
       }
@@ -75,17 +75,29 @@ object CYK {
 
   class Chart { 
 
-    val position : Map[Product,Set[Product]] = Map()
+    val position : Map[Product,Set[String]] = Map()
     var parseForest : List[Product] = List()
-   
-    //maybe add without probabilities to chart
 
     def Add(pos: Product, in : Any) {
+      
+      def S(entry : Set[Product]) = {
+	var tableSet : Set[String] = Set() 
+	for (piece <- entry){ 
+	  tableSet += (
+	    piece.productElement(0)).asInstanceOf[String]
+	}
+	tableSet
+      }
+
       (gram.revMap).get(in) match { 
-	case Some(entry) 
-	  => position += (pos -> entry); print(entry)
-	case None 
-	  => None
+	case Some(entry) => 
+	  if (position.contains(pos)){
+	      position(pos) ++ S(entry)
+	  }
+	  else {position += (pos -> S(entry))}
+
+	case None => 
+	  None
       }
     }
 
@@ -96,6 +108,7 @@ object CYK {
 
     }
 
+    //print real chart when figured out java.formatter
     def printChart(in : Input)  = { 
       print("input: "); in.inWSpans
 
@@ -104,8 +117,8 @@ object CYK {
 	for (j <- 1 to ((in.pos).length)){ 
 
 	  position.get((i,j)) match{ 
-	    case Some(item) => print(" "+item+" "+j)
-	    case None => print(" "+"Nil"+" "+j)
+	    case Some(item) => print(" "+item.mkString(",")+" "+j)
+	    case None => print(" "+" "+" "+j)
 	  }
 	}
 	print("\n") 
@@ -127,7 +140,3 @@ object CYK {
 
   }   
 }    
-
-
-
-
