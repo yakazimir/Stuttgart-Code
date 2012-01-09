@@ -6,20 +6,22 @@ import scala.io.Source
 import java.util.Formatter._
 //import java.lang.Runtime._
 
+
 object CYK {
   
   val gram = new Grammar; gram.init
   val file = Source.fromFile("sentences.txt").getLines.toList
-   
-  def makeP(acc:Set[String],se:Set[String]) = 
-    for (a <- acc; s <- se) yield {(a,s)}
 
   def time(f: => Unit)= {
 	val s = System.currentTimeMillis; f
 	System.currentTimeMillis - s
   }
+   
+  def makeP(acc:Set[String],se:Set[String]) = 
+    for (a <- acc; s <- se) yield {(a,s)}
+
  
-  class Parser (gram:Grammar,in:Input, table:Chart){
+  class Parser (gram : Grammar,in : Input,table : Chart){
     
     val input = in.pos 
     
@@ -69,7 +71,7 @@ object CYK {
       for (word <- pos) {
 	var f = word._2; print(f+" "+word._1+" ")
       }
-      print(pos.length+"\n"); print("\n")
+      print(pos.length+"\n")
     } 
   }
 
@@ -78,46 +80,34 @@ object CYK {
     val position : Map[Product,Set[String]] = Map()
     var forest : List[Product] = List()
 
-    def printForest(in :Input){ 
-      print("input: "); in.inWSpans
-      val string = "%-15s ==> %-20s %-5s"
+    def printForest = { 
+      val string = "%-15s ==> %-20s %-5s"; print("\n")
       for (entry <- forest){ 
-
-	println("\t"+string.format(
-	  (entry.productElement(0)).toString,
+	println("\t"+string.format((entry.productElement(0)).toString,
 	  (entry.productElement(1)).toString,
 	  (entry.productElement(2)).toString))
       }
-    
-
       println("\n")
-      
     }
 
     private def pForest(entry : Set[Product],in : Any, pos : Product, mid : Int){ 
       
       var i = pos.productElement(0); var j = pos.productElement(1)
-
+      
       if (mid == 0) {
 	var lexItem = ((i,in,j),(in),1.0)
 	forest = lexItem::forest
 	for (value <- entry){
-	  
 	  var tVal = value.productElement(0)
 	  var prob = value.productElement(1) 
-	 
 	  forest = ((i,tVal,j),(i,in,j),prob)::forest
 	}
       }
-      else {
-	
+      else {	
 	for (value <- entry) { 
-
-	  var tVal = value.productElement(0)
-	  var prob = value.productElement(1)
-	  var f = in.asInstanceOf[Product].productElement(0)
-	  var s = in.asInstanceOf[Product].productElement(1)
-	  
+	  var tVal = value.productElement(0);var prob = value.productElement(1)
+	  var f = in.asInstanceOf[Product].productElement(1) //fix this 
+	  var s = in.asInstanceOf[Product].productElement(0)// fix this
 	  forest = ((i,tVal,j),((i,f,mid),(mid,s,j)),prob)::forest
 	}
 	
@@ -150,7 +140,6 @@ object CYK {
       }
     }
 
-    //print real table when I've figured out java.formatter
     def printChart(in : Input)  = { 
       print("input: "); in.inWSpans
 
@@ -175,9 +164,10 @@ object CYK {
       var parser = new Parser(gram,input, chart) 
       var timeFun : Double = time(parser.Parse)
       
-      println("CPU Time: " + timeFun / 1000.0) //chart.printChart(input)
-      chart.printForest(input)
+      print("INPUT: "); input.inWSpans
+      println("CPU Time: " + timeFun / 1000.0) 
+      chart.printForest
     }
 
-  }   
+  }
 }    
