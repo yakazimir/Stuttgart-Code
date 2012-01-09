@@ -3,7 +3,7 @@ import scala.util.control.Breaks._
 import scala.collection.mutable.{Set,Map}
 import scala.io.Source
 
-//import java.util.Formatter._
+import java.util.Formatter._
 //import java.lang.Runtime._
 
 object CYK {
@@ -30,7 +30,7 @@ object CYK {
 	  var ter : Set[String] = Set() 
 	  for (i <- pair) ter += i;ter
 	}
-	for(pair <- makeP(prod(x),prod(y))) table.Add((k,j),pair)
+	for(pair <- makeP(prod(x),prod(y))) table.Add((k,j),pair,z)
       }
       catch { 
 	case eof: java.util.NoSuchElementException => 
@@ -53,7 +53,7 @@ object CYK {
       for (word <- input) {
 	if ((gram.tList).contains(word._1)){ 
 	  var i = word._2; var j = i+1
-	  table.Add((i,j),word._1); inParse(i,j)
+	  table.Add((i,j),word._1, 0); inParse(i,j)
 	}     
 	else {println("not in grammar")} 
       }     
@@ -76,9 +76,55 @@ object CYK {
   class Chart { 
 
     val position : Map[Product,Set[String]] = Map()
-    var parseForest : List[Product] = List()
+    var forest : List[Product] = List()
 
-    def Add(pos: Product, in : Any) {
+    def printForest(in :Input){ 
+      print("input: "); in.inWSpans
+      val string = "%-15s ==> %-20s %-5s"
+      for (entry <- forest){ 
+
+	println("\t"+string.format(
+	  (entry.productElement(0)).toString,
+	  (entry.productElement(1)).toString,
+	  (entry.productElement(2)).toString))
+      }
+    
+
+      println("\n")
+      
+    }
+
+    private def pForest(entry : Set[Product],in : Any, pos : Product, mid : Int){ 
+      
+      var i = pos.productElement(0); var j = pos.productElement(1)
+
+      if (mid == 0) {
+	var lexItem = ((i,in,j),(in),1.0)
+	forest = lexItem::forest
+	for (value <- entry){
+	  
+	  var tVal = value.productElement(0)
+	  var prob = value.productElement(1) 
+	 
+	  forest = ((i,tVal,j),(i,in,j),prob)::forest
+	}
+      }
+      else {
+	
+	for (value <- entry) { 
+
+	  var tVal = value.productElement(0)
+	  var prob = value.productElement(1)
+	  var f = in.asInstanceOf[Product].productElement(0)
+	  var s = in.asInstanceOf[Product].productElement(1)
+	  
+	  forest = ((i,tVal,j),((i,f,mid),(mid,s,j)),prob)::forest
+	}
+	
+      }
+    }
+
+    def Add(pos: Product, in : Any, mid : Int) {
       
       def S(entry : Set[Product]) = {
 	var tableSet : Set[String] = Set() 
@@ -89,33 +135,28 @@ object CYK {
 	tableSet
       }
 
-      (gram.revMap).get(in) match { 
+      (gram.revMap).get(in) match {
 	case Some(entry) => 
 	  if (position.contains(pos)){
-	      position(pos) ++ S(entry)
+	    position(pos) ++ S(entry)
+	    pForest(entry, in, pos, mid)
 	  }
-	  else {position += (pos -> S(entry))}
-
+	  else {
+	    position += (pos -> S(entry))
+	    pForest(entry, in, pos, mid)
+	  }
 	case None => 
 	  None
       }
     }
 
-    private def writeParseForest {
-      
-      
-      // THIS IS WHERE 
-
-    }
-
-    //print real chart when figured out java.formatter
+    //print real table when I've figured out java.formatter
     def printChart(in : Input)  = { 
       print("input: "); in.inWSpans
 
       for (i <- 0 to ((in.pos).length)-1) { 
 	print(i)
 	for (j <- 1 to ((in.pos).length)){ 
-
 	  position.get((i,j)) match{ 
 	    case Some(item) => print(" "+item.mkString(",")+" "+j)
 	    case None => print(" "+" "+" "+j)
@@ -134,8 +175,8 @@ object CYK {
       var parser = new Parser(gram,input, chart) 
       var timeFun : Double = time(parser.Parse)
       
-      println("CPU Time: " + timeFun / 1000.0); chart.printChart(input)
-
+      println("CPU Time: " + timeFun / 1000.0) //chart.printChart(input)
+      chart.printForest(input)
     }
 
   }   
