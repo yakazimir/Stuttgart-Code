@@ -31,10 +31,12 @@ object GRAM {
 		  (("on"),0.4)),
       "OP"-> List((("N","P"),1.0)))
 
+
     val Nterminals = productions.keys
     var tList : Set[Any] = Set()
     var revMap : Map[Any,Set[Product]] = Map()
     
+
     def init  = for ((x,y) <- productions) {
       for (item <- y){
 	tList += item._1

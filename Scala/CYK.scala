@@ -1,29 +1,16 @@
 import GRAM.Grammar
-import scala.util.control.Breaks._
+//import scala.util.control.Breaks._
 import scala.collection.mutable.{Set,Map}
-import scala.io.Source
-
 import java.util.Formatter._
-//import java.lang.Runtime._
 
+object CYK {  
 
-object CYK {
-  
-  val gram = new Grammar; gram.init
-  val file = Source.fromFile("sentences.txt").getLines.toList
-
-  def time(f: => Unit)= {
-	val s = System.currentTimeMillis; f
-	System.currentTimeMillis - s
-  }
-   
   def makeP(acc:Set[String],se:Set[String]) = 
     for (a <- acc; s <- se) yield {(a,s)}
-
  
   class Parser (gram : Grammar,in : Input,table : Chart){
     
-    val input = in.pos 
+    val input = in.pos
     
     private def allSpan(k : Int, z : Int, j : Int){
       try {
@@ -32,7 +19,7 @@ object CYK {
 	  var ter : Set[String] = Set() 
 	  for (i <- pair) ter += i;ter
 	}
-	for(pair <- makeP(prod(x),prod(y))) table.Add((k,j),pair,z)
+	for(pair <- makeP(prod(x),prod(y))) table.Add((k,j),pair,z,gram)
       }
       catch { 
 	case eof: java.util.NoSuchElementException => 
@@ -55,17 +42,19 @@ object CYK {
       for (word <- input) {
 	if ((gram.tList).contains(word._1)){ 
 	  var i = word._2; var j = i+1
-	  table.Add((i,j),word._1, 0); inParse(i,j)
-	}     
+	  table.Add((i,j),word._1, 0, gram) 
+	  inParse(i,j)   
+	}    
 	else {println("not in grammar")} 
-      }     
+      }   
     }
+  
   }
 
   class Input(x : String) { 
 
     val pos = ((x.split(" ")).toList).zipWithIndex
-    val original = "input: "+ x
+    val original = x
 
     def inWSpans {
       for (word <- pos) {
@@ -78,53 +67,52 @@ object CYK {
   class Chart { 
 
     val position : Map[Product,Set[String]] = Map()
-    var forest : List[Product] = List()
+    var forest : Map[Product, Product] = Map() 
 
     def printForest = { 
       val string = "%-15s ==> %-20s %-5s"; print("\n")
-      for (entry <- forest){ 
-	println("\t"+string.format((entry.productElement(0)).toString,
-	  (entry.productElement(1)).toString,
-	  (entry.productElement(2)).toString))
+      for ((key,value) <- forest){ 
+	  println("\t"+string.format(
+	    key, value.productElement(0),
+	    value.productElement(1)))
       }
       println("\n")
     }
 
     private def pForest(entry : Set[Product],in : Any, pos : Product, mid : Int){ 
       
-      var i = pos.productElement(0); var j = pos.productElement(1)
-      
+      var i = pos.productElement(0)
+      var j = pos.productElement(1) 
+ 
       if (mid == 0) {
 	var lexItem = ((i,in,j),(in),1.0)
-	forest = lexItem::forest
+	forest += ((i,in,j)->((in),1.0))
+
 	for (value <- entry){
-	  var tVal = value.productElement(0)
-	  var prob = value.productElement(1) 
-	  forest = ((i,tVal,j),(i,in,j),prob)::forest
+	  forest += ((i,value.productElement(0),j) -> 
+		      ((i,in,j),value.productElement(1)))
 	}
       }
       else {	
 	for (value <- entry) { 
-	  var tVal = value.productElement(0);var prob = value.productElement(1)
-	  var f = in.asInstanceOf[Product].productElement(1) //fix this 
-	  var s = in.asInstanceOf[Product].productElement(0)// fix this
-	  forest = ((i,tVal,j),((i,f,mid),(mid,s,j)),prob)::forest
+	  var f = in.asInstanceOf[Product].productElement(1) 
+	  var s = in.asInstanceOf[Product].productElement(0)
+	  forest += ((i,value.productElement(0),j) -> 
+		    (((i,f,mid),(mid,s,j)),value.productElement(1)))
 	}
 	
       }
+    
     }
 
-    def Add(pos: Product, in : Any, mid : Int) {
-      
+    def Add(pos: Product, in : Any, mid : Int, gram: Grammar) {
       def S(entry : Set[Product]) = {
-	var tableSet : Set[String] = Set() 
-	for (piece <- entry){ 
-	  tableSet += (
-	    piece.productElement(0)).asInstanceOf[String]
+	var t : Set[String] = Set() 
+	for (p <- entry){ 
+	  t += p.productElement(0).asInstanceOf[String]
 	}
-	tableSet
+	t
       }
-
       (gram.revMap).get(in) match {
 	case Some(entry) => 
 	  if (position.contains(pos)){
@@ -158,16 +146,5 @@ object CYK {
 
   } 
 
-  def main(args: Array[String]){ 
-    for (sentence <- file) { 
-      var chart = new Chart; var input = new Input(sentence.toLowerCase) 
-      var parser = new Parser(gram,input, chart) 
-      var timeFun : Double = time(parser.Parse)
-      
-      print("INPUT: "); input.inWSpans
-      println("CPU Time: " + timeFun / 1000.0) 
-      chart.printForest
-    }
-
-  }
-}    
+}   
+ 

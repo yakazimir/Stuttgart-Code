@@ -5,26 +5,27 @@ import scala.collection.mutable.{Set,Map}
 
 object Parser { 
 
+  val gram = new Grammar; gram.init
+  val file = Source.fromFile("sentences.txt").getLines.toList
+
   def time(f: => Unit)= {
 	val s = System.currentTimeMillis; f
 	System.currentTimeMillis - s
   }
 
-  class KnuthDijkstra(x: Chart) { 
+  class KnuthDijkstra(x: Chart, i : Input) { 
    
     private var MaxVal : Map[String,Double] = Map()
-    val parseForest = x.forest.reverse 
+    val forest = x.forest
+    val terminals = i.original.split(" ").toList
 
     
     
-    
-    
+  
   }
 
 
-  val gram = new Grammar; gram.init
-  val file = Source.fromFile("sentences.txt").getLines.toList
-
+ 
   def main(args: Array[String]){
     for (sentence <- file) { 
       
@@ -36,10 +37,10 @@ object Parser {
       print("INPUT: "); input.inWSpans
       println("CPU Time: " + timeFun / 1000.0) 
       
-      
-      var knuth = new KnuthDijkstra(chart) 
+   
       chart.printForest
-      
+      var knuth = new KnuthDijkstra(chart, input) 
+   
 
     }
   
