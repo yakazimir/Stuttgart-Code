@@ -67,14 +67,13 @@ object CYK {
   class Chart { 
 
     val position : Map[Product,Set[String]] = Map()
-    var forest : Map[Product, Product] = Map() 
+    var forest : List[Product] = List()
 
     def printForest = { 
       val string = "%-15s ==> %-20s %-5s"; print("\n")
-      for ((key,value) <- forest){ 
-	  println("\t"+string.format(
-	    key, value.productElement(0),
-	    value.productElement(1)))
+      for (item <- forest){ 
+	  println("\t"+string.format(item.productElement(0), 
+	    item.productElement(1),item.productElement(2)))
       }
       println("\n")
     }
@@ -86,19 +85,19 @@ object CYK {
  
       if (mid == 0) {
 	var lexItem = ((i,in,j),(in),1.0)
-	forest += ((i,in,j)->((in),1.0))
-
+	forest = ((i,in,j),(in),1.0)::forest
 	for (value <- entry){
-	  forest += ((i,value.productElement(0),j) -> 
-		      ((i,in,j),value.productElement(1)))
+	  forest = ((i,value.productElement(0),j),
+		    (i,in,j),value.productElement(1))::forest
 	}
       }
+
       else {	
 	for (value <- entry) { 
-	  var f = in.asInstanceOf[Product].productElement(1) 
 	  var s = in.asInstanceOf[Product].productElement(0)
-	  forest += ((i,value.productElement(0),j) -> 
-		    (((i,f,mid),(mid,s,j)),value.productElement(1)))
+	  var f = in.asInstanceOf[Product].productElement(1) 
+	  forest = ((i,value.productElement(0),j), 
+		    ((i,s,mid),(mid,f,j)),value.productElement(1))::forest
 	}
 	
       }
