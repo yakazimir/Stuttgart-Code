@@ -3,7 +3,7 @@ import scala.collection.mutable.{Set,Map,HashSet}
 object GRAM { 
   
   abstract class Entry
-  case class R(binary:Product,prob:Double) extends Entry 
+  case class R(binary:(String,String),prob:Double) extends Entry 
   case class L(lexical:String,prob:Double) extends Entry
   
   class Grammar {
@@ -14,8 +14,8 @@ object GRAM {
 		  R(("V","N"),0.4), 
 		   L("eats",0.2), 
 		   L("loves",0.1), 
-		   L("hates",0.2), 
-		   L("pizza",0.2)), 
+		   L("hates",0.2)), 
+		   //L("pizza",0.2)), 
       "N" -> List(R(("N","P"),0.2), 
 		   L("she",0.1), 
 		   L("he", 0.1), 
@@ -33,24 +33,32 @@ object GRAM {
 
     val nTerminals = productions.keys  
     val terminals = new HashSet[String]
-    val subList = new HashSet[Product]
-    var tReverseMap : Map[String,Set[Product]] = Map() 
-    var rReverseMap : Map[Product, Set[Product]] = Map()  
+    val subList = new HashSet[(String,String)]
+    var tReverseMap : Map[String,Set[(String,Double)]] = Map() 
+    var rReverseMap : Map[(String,String), Set[(String,Double)]] = Map() 
+    //var revMap = tReverseMap ++ rReverseMap
 
 
     def init(){ 
-      def add[T](z:String,x:T,pr:Double,y:Map[T,Set[Product]]):Map[T,Set[Product]]={ 
+      def add[T](z:String,x:T,pr:Double,y:Map[T,Set[(String,Double)]])= { 
 	if (!y.contains(x)) {y += (x -> Set((z,pr)))}
 	else {y(x) += ((z,pr))}
 	y }
       for(z <- nTerminals){
 	for (part <- productions(z)){ 
 	  part match { 
-	    case x : R => add[Product](z,x.binary,x.prob,rReverseMap); subList += x.binary
-	    case y : L => add[String](z, y.lexical,y.prob,tReverseMap); terminals += y.lexical
+	    case x : R => { 
+	      add[(String,String)](z,x.binary,x.prob,rReverseMap)
+	      subList += x.binary }
+	    case y : L => {
+	      add[String](z, y.lexical,y.prob,tReverseMap)
+	      terminals += y.lexical }
 	  }	  
 	}
       }
     }
+  
+
+
   }
 }
