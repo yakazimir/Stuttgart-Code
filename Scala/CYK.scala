@@ -64,39 +64,49 @@ object CYK {
   class Chart {
 
     val position : Map[Product,Set[String]] = Map() 
-    var forest : List[Product] = List() 
+    var forest : List[forestForm] = List() 
 
     abstract class forestForm 
     case class lexical(l:((Int,String,Int),String,Double)) extends forestForm
-    case class binary(b:((Int,String,Int),(String,String),Double)) extends forestForm 
+    case class singl(b:((Int,String,Int),(Int,String,Int),Double)) extends forestForm 
+    case class binary(bi:((Int,String,Int),((Int,String,Int),(Int,String,Int)),Double)) extends forestForm
 
-    def printForest { 
-      
+    def printForest = { 
+      val string = "%-15s ==> %-20s %-5s"; print("\n")
+      for (item <- forest){ 
+	item match { 
+	  case x : lexical => println("\t"+string.format(x.l._1,x.l._2,x.l._3))
+	  case y : singl => println("\t"+string.format(y.b._1, y.b._2, y.b._3)) 
+	  case z : binary => println("\t"+string.format(z.bi._1, z.bi._2, z.bi._3))
+	}
+      }   
     }
     
-
     def Add[T](pos:posP,in:T,mid :Int,gram:Map[T,Set[(String,Double)]]){ 
-      def pForest(entry : Set[(String,Double)]){
-	var i = pos.numPair._1; var j = pos.numPair._2
-	if (mid == 0){ 
-	  forest = lexical(((i,in,j),in,1.0))::forest
+    
+      def tableA(pos : posP, entry : Set[(String,Double)]){
+	if (!position.contains(pos)){
+	  position += (pos.numPair -> entry.unzip._1)
 	}
-	else {println("") }
+	else {position(pos.numPair)++ entry.unzip._1}
       }
       gram.get(in) match { 
-	case Some(entry) => 
-	  if (!position.contains(pos)){
-	    position += (pos.numPair -> entry.unzip._1)
-	    //pForest(entry)
+	case Some(entry) => tableA(pos,entry);var i = pos.numPair._1;var j = pos.numPair._2
+	if (mid == 0){var inS = in.asInstanceOf[String]
+	    forest = lexical(((i,inS,j),inS,1.0))::forest
+	    for (value <- entry) { 
+	      forest = singl(((i,value._1,j),(i,inS,j),value._2))::forest }
 	  }
-	  else {
-	    position(pos.numPair) ++ entry.unzip._1
-	  }
-	case None => None 
+	else { var ino = in.asInstanceOf[(String,String)]
+	  for (value <- entry) { 
+	    forest = binary(((i,value._1,j),((i,ino._1,mid),(mid,ino._2,j)),value._2))::forest }
+	}
+	case None => 
+	  None 
       }
       
     }
-
+  
   }
 
   class Input(x : String) { 
@@ -121,7 +131,7 @@ object CYK {
       
       var parser = new Parser(gram, input, chart)
       parser.Parse()
-      println(chart.position)
+      chart.printForest
       //var knuth = new KnuthDijkstra(chart, input)
       //var timeFun : Double = time(parser.Parse())
       //var timeMostProb : Double = time(knuth.mostProbable())
