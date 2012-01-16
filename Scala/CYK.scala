@@ -1,5 +1,5 @@
 import GRAM.Grammar
-import scala.io.Source
+//import scala.io.Source
 import scala.collection.mutable.{Set,Map, HashSet}
 import java.util.Formatter._
 
@@ -8,13 +8,11 @@ object CYK {
   abstract class chartVals
   case class posP(numPair:(Int,Int)) extends chartVals
   
-  val file = Source.fromFile("sentences.txt").getLines.toList
-  val gram = new Grammar; gram.init
-  
-  def time(f: => Unit)= {
-	val s = System.currentTimeMillis; f
-	System.currentTimeMillis - s
-  }
+  abstract class forestForm 
+  case class lexical(l:((Int,String,Int),String,Double)) extends forestForm
+  case class singl(b:((Int,String,Int),(Int,String,Int),Double)) extends forestForm 
+  case class binary(bi:((Int,String,Int),((Int,String,Int),(Int,String,Int)),Double)) extends forestForm
+
 
   def makeP(acc:Set[String],se:Set[String]) = 
     for (a <- acc; s <- se) yield {(a,s)}
@@ -66,18 +64,16 @@ object CYK {
     val position : Map[Product,Set[String]] = Map() 
     var forest : List[forestForm] = List() 
 
-    abstract class forestForm 
-    case class lexical(l:((Int,String,Int),String,Double)) extends forestForm
-    case class singl(b:((Int,String,Int),(Int,String,Int),Double)) extends forestForm 
-    case class binary(bi:((Int,String,Int),((Int,String,Int),(Int,String,Int)),Double)) extends forestForm
-
     def printForest = { 
       val string = "%-15s ==> %-20s %-5s"; print("\n")
       for (item <- forest){ 
 	item match { 
-	  case x : lexical => println("\t"+string.format(x.l._1,x.l._2,x.l._3))
-	  case y : singl => println("\t"+string.format(y.b._1, y.b._2, y.b._3)) 
-	  case z : binary => println("\t"+string.format(z.bi._1, z.bi._2, z.bi._3))
+	  case x : lexical => 
+	    println("\t"+string.format(x.l._1,x.l._2,x.l._3))
+	  case y : singl => 
+	    println("\t"+string.format(y.b._1, y.b._2, y.b._3)) 
+	  case z : binary => 
+	    println("\t"+string.format(z.bi._1, z.bi._2, z.bi._3))
 	}
       }   
     }
@@ -101,12 +97,10 @@ object CYK {
 	  for (value <- entry) { 
 	    forest = binary(((i,value._1,j),((i,ino._1,mid),(mid,ino._2,j)),value._2))::forest }
 	}
-	case None => 
-	  None 
+	case None => None 
       }
       
-    }
-  
+    }  
   }
 
   class Input(x : String) { 
@@ -123,28 +117,8 @@ object CYK {
   }
 
 
-  def main(args: Array[String]){
-    for (sentence <- file) { 
-      
-      val chart = new Chart
-      var input = new Input(sentence.toLowerCase) 
-      
-      var parser = new Parser(gram, input, chart)
-      parser.Parse()
-      chart.printForest
-      //var knuth = new KnuthDijkstra(chart, input)
-      //var timeFun : Double = time(parser.Parse())
-      //var timeMostProb : Double = time(knuth.mostProbable())
-
-      //print("INPUT: "); input.inWSpans
-      //println("CPU Time: " + (timeFun) / 1000.0) 
 
 
-    }
-  
-  }
-
-
-}  
+}
 
  
