@@ -22,8 +22,8 @@ object GRAM {
 		   L("pizza",0.1), 
 		   L("anchovies",0.2), 
 		   L("meat", 0.2), 
-		   L("bread",0.1), 
-		   L("cheese",0.1)), 
+		   L("bread",0.05), 
+		   L("cheese",0.05)), 
       "P" -> List(R(("PP","N"),1.0)), 
       "PP"-> List( L("without",0.4), 
 		   L("with",0.2), 
@@ -36,8 +36,6 @@ object GRAM {
     val subList = new HashSet[(String,String)]
     var tReverseMap : Map[String,Set[(String,Double)]] = Map() 
     var rReverseMap : Map[(String,String), Set[(String,Double)]] = Map() 
-    //var revMap = tReverseMap ++ rReverseMap
-
 
     def init(){ 
       def add[T](z:String,x:T,pr:Double,y:Map[T,Set[(String,Double)]])= { 

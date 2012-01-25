@@ -1,5 +1,4 @@
 import GRAM.Grammar
-//import scala.io.Source
 import scala.collection.mutable.{Set,Map, HashSet}
 import java.util.Formatter._
 
@@ -13,9 +12,7 @@ object CYK {
   case class singl(b:((Int,String,Int),(Int,String,Int),Double)) extends forestForm 
   case class binary(bi:((Int,String,Int),((Int,String,Int),(Int,String,Int)),Double)) extends forestForm
 
-
-  def makeP(acc:Set[String],se:Set[String]) = 
-    for (a <- acc; s <- se) yield {(a,s)}
+  def makeP(acc:Set[String],se:Set[String]) = for (a <- acc; s <- se) yield {(a,s)}
  
   class Parser(gram:Grammar, in : Input, table : Chart){
     
@@ -88,7 +85,7 @@ object CYK {
       }
       gram.get(in) match { 
 	case Some(entry) => tableA(pos,entry);var i = pos.numPair._1;var j = pos.numPair._2
-	if (mid == 0){var inS = in.asInstanceOf[String]
+	if (mid == 0){ var inS = in.asInstanceOf[String]
 	    forest = lexical(((i,inS,j),inS,1.0))::forest
 	    for (value <- entry) { 
 	      forest = singl(((i,value._1,j),(i,inS,j),value._2))::forest }
@@ -104,7 +101,6 @@ object CYK {
   }
 
   class Input(x : String) { 
-
     val pos = ((x.split(" ")).toList).zipWithIndex
     val original = x
 
