@@ -6,10 +6,6 @@ import scala.collection.mutable.{Set,Map, HashSet}
 
 object insideOut { 
 
-  var inside : Map[(Int,Int),Map[String, Double]] = Map()
-  var outside : Map[(Int,Int),Map[String,Double]] = Map()
-
-
   private def checkExist(x:(Int,Int),y:String,y2:Double,z:Map[(Int,Int),Map[String,Double]]){
     
     if (!z.contains(x)){
@@ -17,7 +13,8 @@ object insideOut {
     }
     else {
       if (z(x).contains(y)){ 
-	println(y)
+	var upd : Double = z(x)(y) + y2
+	z(x) += (y -> upd)
       } 
       else {z(x) += (y -> y2)}
     }
@@ -30,27 +27,35 @@ object insideOut {
 
   class insideProb(x:Chart) {
     
-    var forest = x.forest.reverse    
-    for (item <- forest) {
+    var inside : Map[(Int,Int),Map[String, Double]] = Map()
+
+    for (item <- x.forest.reverse) {
       item match { 
 	case x : lexical => None
 	case y : singl => 
 	  checkExist((y.b._1._1,y.b._1._3),y.b._1._2,y.b._3,inside)	
-	case z : binary => 
-	  None
-	  //if checkExit(z.bi._1._1
-	  
-      }
-
+	case z : binary => {
+	  var f : Double = (z.bi._3 * inside((z.bi._2._1._1,z.bi._2._1._3))(z.bi._2._1._2) *
+			    inside((z.bi._2._2._1,z.bi._2._2._3))(z.bi._2._2._2))
+	  checkExist((z.bi._1._1,z.bi._1._3), z.bi._1._2, f, inside)
+	    
+	}
+      } 
     }
-    println(inside) 
   }
 
   class outsideProb(x:Chart) {
-    
-    
-    
 
+    var outside : Map[(Int,Int),Map[String,Double]] = Map()
+    
+    for (item <- x.forest) {
+      
+      
+
+
+
+    }
+  
   }
 
 }
