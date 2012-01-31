@@ -1,8 +1,14 @@
 import CYK._
-import GRAM.Grammar
+//import GRAM.Grammar
 import scala.collection.mutable.{Set,Map, HashSet}
 
 object insideOut { 
+  
+  abstract class Rule 
+  case class B(r:((String,String,String),Double)) extends Rule
+  case class PT(r:((String,String),Double)) extends Rule 
+
+  val count = 0 
   
   private def checkExist(x:(Int,Int),y:String,y2:Double,z:Map[(Int,Int),Map[String,Double]]){
     
@@ -16,17 +22,16 @@ object insideOut {
       } 
       else {z(x) += (y -> y2)}
     }
-
   }
 
-  class insideOut(x:Chart,inputSize:Int){ 
+  class insideOutProb(x:Chart,inputSize:Int){ 
     
     var inside : Map[(Int,Int),Map[String,Double]] = Map() 
     var outside : Map[(Int,Int),Map[String,Double]] = Map() 
-    
-    val insideVals = new insideProb(x,inside)
-    val outsideVals = new outsideProb(x,outside, inside, inputSize)
+    val rules : Map[Rule,Set[(Int,Int)]] = Map() 
 
+    val insideVals = new insideProb(x,inside)
+    val outsideVals = new outsideProb(x,outside, inside, inputSize, rules)
   }
 
   class insideProb(c:Chart, m:Map[(Int,Int),Map[String,Double]]) {   
@@ -45,8 +50,16 @@ object insideOut {
     }
   }
 
-  class outsideProb(x:Chart,o:Map[(Int,Int),Map[String,Double]],i:Map[(Int,Int),Map[String,Double]],is:Int) {
+  class outsideProb(x:Chart,o:Map[(Int,Int),Map[String,Double]],i:Map[(Int,Int),Map[String,Double]],is:Int,rules:Map[Rule,Set[(Int,Int)]]) {
     
+    private def addRule(r:Rule,pos:(Int,Int)){ 
+      r match { 
+	case x : Any => 
+	  if (!rules.contains(r)){rules += (r -> Set(pos))}
+	  else {rules(r) += pos}
+      }
+    } 
+
     private def rec(fir:(Int,String,Int),sec:((Int,String,Int),(Int,String,Int)),prob:Double){
       try {
 	checkExist(
@@ -62,20 +75,22 @@ object insideOut {
     for (item <- x.forest) {
       item match { 	
 	case x : lexical => None 
-	case y : singl => None 
+	case y : singl => 
+	  addRule(PT(((y.b._1._2,y.b._2._2),y.b._3)),(y.b._1._1,y.b._1._3))
 	case z : binary => 
+	  addRule(B(((z.bi._1._2,z.bi._2._1._2,z.bi._2._2._2),z.bi._3)),(z.bi._1._1,z.bi._1._3))
 	  if(z.bi._1 == (0,"S",is)){
 	    checkExist((z.bi._1._1,z.bi._1._3),z.bi._1._2,1.0,o)
  	    rec(z.bi._1,z.bi._2, z.bi._3)	    
  	  }
 	  else { 
 	   rec(z.bi._1,z.bi._2, z.bi._3)  
-	   
+
 	  }
-	   
+
       }
     } 
   }
 
-
 }
+
