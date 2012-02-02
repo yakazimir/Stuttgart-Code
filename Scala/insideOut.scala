@@ -4,7 +4,6 @@ import scala.collection.mutable.{Set,Map, HashSet}
 
 object insideOut { 
 
-
   abstract class Rule 
   case class B(r:((String,String,String),Double)) extends Rule
   case class PT(r:((String,String),Double)) extends Rule 
@@ -13,7 +12,7 @@ object insideOut {
   case class ML(r:((Int,Int),(Int,Int),(Int,Int))) extends Rule
   case class L(r:(Int,Int)) extends Rule
 
-  val count : Map[Rule,Double] = Map() 
+  val count : Map[String, Map[Rule,Double]] = Map()
   
   private def checkExist(x:(Int,Int),y:String,y2:Double,z:Map[(Int,Int),Map[String,Double]]){
     
@@ -40,10 +39,20 @@ object insideOut {
 
     var sentenceProb : Double = inside(0,inputSize)("S")
     
-    private def countCalc(){
-
-        }
-
+    private def countCalc(head:String,rewrite:Rule,score: Double, c:Map[String,Map[Rule,Double]]){
+      if (!c.contains(head)){ 
+	c += (head -> Map(rewrite -> score))
+      }
+      else {
+	if (!c(head).contains(rewrite)){
+	  c(head) += (rewrite -> score)
+	}
+	else { 
+	  c(head)(rewrite) += score
+	}
+      }
+    }
+      
     for ((rule,pos) <- rules){ 
       def calcSum(ruleP:(String,String,String),rulePoss:List[Rule]):Double ={
 	var product : Double = 0
@@ -51,20 +60,17 @@ object insideOut {
  	  listE match { 
 	    case lex : L => 
 	      product +=  outside(lex.r)(ruleP._1)
-	    case m : ML => {
-	      try { product += (outside(m.r._1)(ruleP._1) * 
+	    case m : ML => 
+		product += (outside(m.r._1)(ruleP._1) * 
 			  inside(m.r._2)(ruleP._2) * inside(m.r._3)(ruleP._3))}
-	      catch  {case eof : java.util.NoSuchElementException => None}
-	    }
-	  }
 	}
 	product
       }
       rule match { 
 	case x : PT =>  
-	  println((x.r._2/sentenceProb)* calcSum((x.r._1._1,x.r._1._2," "),pos))
+	  countCalc(x.r._1._1,x,(x.r._2/sentenceProb)* calcSum((x.r._1._1,x.r._1._2," "),pos),count)
 	case y : B => 
-	  println((y.r._2/sentenceProb)* calcSum(y.r._1, pos))
+	  countCalc(y.r._1._1,y,(y.r._2/sentenceProb)* calcSum(y.r._1, pos),count)
 
       }
     }
@@ -96,15 +102,13 @@ object insideOut {
     }
 
     private def rec(fir:(Int,String,Int),sec:((Int,String,Int),(Int,String,Int)),prob:Double){
-      try {
-	checkExist(
+      checkExist(
 	(sec._1._1,sec._1._3),sec._1._2,prob*(i(sec._2._1,sec._2._3)(sec._2._2))*
-	  o(fir._1,fir._3)(fir._2),o) 	
-	checkExist(
+	o(fir._1,fir._3)(fir._2),o) 	
+      checkExist(
 	(sec._2._1,sec._2._3),sec._2._2,prob*(i(sec._1._1,sec._1._3)(sec._1._2))*
-	  o(fir._1,fir._3)(fir._2),o)
-      }
-      catch { case eof : java.util.NoSuchElementException => None}
+	o(fir._1,fir._3)(fir._2),o)
+
     }
   
     for (item <- x.forest) {
@@ -113,21 +117,31 @@ object insideOut {
 	case y : singl => 
 	  addRule(PT(((y.b._1._2,y.b._2._2),y.b._3)),L((y.b._1._1,y.b._1._3)))
 	case z : binary => 
-	  addRule(B(((z.bi._1._2,z.bi._2._1._2,z.bi._2._2._2),z.bi._3)),
-		  ML((z.bi._1._1,z.bi._1._3),(z.bi._2._1._1,z.bi._2._1._3),
-		     (z.bi._2._2._1,z.bi._2._2._3)))
 	  if(z.bi._1 == (0,"S",is)){
 	    checkExist((z.bi._1._1,z.bi._1._3),z.bi._1._2,1.0,o)
- 	    rec(z.bi._1,z.bi._2, z.bi._3)	    
+ 	    rec(z.bi._1,z.bi._2, z.bi._3)
+	    addRule(B(((z.bi._1._2,z.bi._2._1._2,z.bi._2._2._2),z.bi._3)),
+		    ML((z.bi._1._1,z.bi._1._3),(z.bi._2._1._1,z.bi._2._1._3),
+		       (z.bi._2._2._1,z.bi._2._2._3)))
  	  }
-	  else { 
-	   rec(z.bi._1,z.bi._2, z.bi._3)  
-
+	  else {
+	    try { 
+	      if (o(z.bi._1._1,z.bi._1._3).contains(z.bi._1._2)){
+		addRule(B(((z.bi._1._2,z.bi._2._1._2,z.bi._2._2._2),z.bi._3)),
+			ML((z.bi._1._1,z.bi._1._3),(z.bi._2._1._1,z.bi._2._1._3),
+			   (z.bi._2._2._1,z.bi._2._2._3)))
+		rec(z.bi._1,z.bi._2, z.bi._3)  
+	      }
+	    }
+	    catch { 
+	      case eof: java.util.NoSuchElementException => None 
+	    }
 	  }
-
-      }
-    } 
+      } 
+    }
   }
 
 }
 
+
+//o.(z.bi._1._1,z.bi._1._3)).contains(z.bi._1._2))
