@@ -1,16 +1,34 @@
 import GRAM.Grammar
 import scala.collection.mutable.{Set,Map, HashSet}
 import java.util.Formatter._
+import scala.xml._
 
 object CYK {  
 
   abstract class chartVals
   case class posP(numPair:(Int,Int)) extends chartVals
   
-  abstract class forestForm 
-  case class lexical(l:((Int,String,Int),String,Double)) extends forestForm
-  case class singl(b:((Int,String,Int),(Int,String,Int),Double)) extends forestForm 
-  case class binary(bi:((Int,String,Int),((Int,String,Int),(Int,String,Int)),Double)) extends forestForm
+  abstract class forestForm {
+    def toXml():Any = { }
+  }
+  case class lexical(l:((Int,String,Int),String,Double)) extends forestForm 
+  case class binary(bi:((Int,String,Int),((Int,String,Int),(Int,String,Int)),Double)) extends forestForm {
+     override def toXml():xml.Elem = {
+       <Binary cat={bi._1._2} start={bi._1._1.toString} span={bi._1._3.toString} weight={bi._3.toString}>{
+       <C1 cat={bi._2._1._2} start={bi._2._1._1.toString} span={bi._2._1._3.toString}></C1>
+       <C2 cat={bi._2._2._2} start={bi._2._2._1.toString} span={bi._2._2._3.toString}></C2>
+       } 
+       </Binary>
+    }
+  }
+  case class singl(b:((Int,String,Int),(Int,String,Int),Double)) extends forestForm {
+    override def toXml():xml.Elem = {
+      <Unary cat={b._1._2} start={b._1._1.toString} span={b._1._3.toString} weight={b._3.toString}>
+      {<terminal word={b._2._2} start={b._2._1.toString} span={b._2._3.toString}></terminal>}
+      </Unary>
+      
+    }
+  }
 
   def makeP(acc:Set[String],se:Set[String]) = for (a <- acc; s <- se) yield {(a,s)}
  
@@ -56,7 +74,7 @@ object CYK {
   
   }
 
-  class Chart {
+  class Chart(input:String, index:Int){
 
     val position : Map[Product,Set[String]] = Map() 
     var forest : List[forestForm] = List() 
@@ -74,7 +92,19 @@ object CYK {
 	}
       }   
     }
-    
+
+    def forestToXML() = {
+      val sentence = <sentence id={index.toString}>
+      <Input>{input}</Input>
+      <Length>{input.split(" ").length}</Length>
+      <Rules>{for (i <- forest) yield i.toXml}</Rules>
+      </sentence>
+
+      val pp = new scala.xml.PrettyPrinter(100,2)
+      println(pp.format(sentence))
+      
+    }
+      
     def Add[T](pos:posP,in:T,mid :Int,gram:Map[T,Set[(String,Double)]]){ 
     
       def tableA(pos : posP, entry : Set[(String,Double)]){
@@ -112,9 +142,7 @@ object CYK {
     } 
   }
 
-
-
-
 }
+
 
  
