@@ -94,10 +94,33 @@ object CYK {
     }
 
     def forestToXML() = {
+      var completions = new HashSet[(Int,String,Int)]
+      def check(f:forestForm) = { 
+	f match { 
+	  case x : binary => 
+	    if (x.bi._1 == (0,"S",input.split(" ").length)){
+	      completions += x.bi._2._1
+	      completions += x.bi._2._2
+	      x.toXml
+	    }
+	    else if (completions.contains(x.bi._1)){
+	      completions += x.bi._2._1 
+	      completions += x.bi._2._2
+	      x.toXml
+	    }
+	    else { }  
+	  case y : singl => 
+	    if (completions.contains(y.b._1)){ 
+	      y.toXml
+	    }
+	    else { } 
+	  case z : lexical => { }       
+	}
+      }
       val sentence = <sentence id={index.toString}>
       <Input>{input}</Input>
       <Length>{input.split(" ").length}</Length>
-      <Rules>{for (i <- forest) yield i.toXml}</Rules>
+      <Rules>{for (i <- forest) yield check(i)}</Rules>
       </sentence>
 
       val pp = new scala.xml.PrettyPrinter(100,2)
