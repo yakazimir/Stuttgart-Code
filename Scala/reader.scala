@@ -102,11 +102,55 @@ object reader {
     return forest 
   }
 
-  class insideOutProb(x : List[Rule], size: Int) { 
+  class insideOutProb(x : List[Rule], size: Int, count:Map[String,Map[Rule,Double]]) { 
     
-    var inside : Map[(Int,Int),Map[String,Double]] = Map() 
-    var outside : Map[(Int,Int),Map[String,Double]] = Map() 
     var rules : Map[Rule,List[Rule]] = Map() 
+    var insideVals = insideProb() 
+    var outsideVals = outsideProb(insideVals)
+    //this means that only one S can be there -- will need to change 
+    var sentenceProb : Double = insideVals(0,size)("S")
+    var countIO = calCounts()
+
+    private def calCounts(){
+      def countCalc(head:String,rewrite:Rule,score:Double,c:Map[String,Map[Rule,Double]]){
+	if (!c.contains(head)){
+	  c += (head -> Map(rewrite -> score))
+	}
+	else { 
+	  if (!c(head).contains(rewrite)){
+	    c(head) += (rewrite -> score)
+	  }
+	  else { 
+	    c(head)(rewrite) += score 
+	  }
+	}
+      }
+      def calcSum(ruleP:(String,String,String),rulePoss:List[Rule]):Double={
+	var product : Double = 0 
+	for (listE <- rulePoss){
+	  listE match { 
+	    case lex : lo => 
+	      product += outsideVals(lex.r)(ruleP._1)  
+	    case nl : lo2 => 
+	      product += (outsideVals(nl.r._1)(ruleP._1)*
+			  insideVals(nl.r._2)(ruleP._2) * insideVals(nl.r._3)(ruleP._3))
+	    
+	  }
+	}
+	product 
+      }
+      for ((rule,pos) <- rules) {
+	rule match { 
+	  case x : rule1 => 
+	    countCalc(x.r._1._1,x,(x.r._2/sentenceProb)*
+		      calcSum(x.r._1,pos),count)
+	  case y : rule2 => 
+	    countCalc(y.r._1._1,y,(y.r._2/sentenceProb)
+		      * calcSum((y.r._1._1,y.r._1._2, " "), pos),count)
+	    
+	}
+      }
+    }
 
     private def checkExist(x:(Int,Int),y:String,y2:Double,z:Map[(Int,Int),Map[String,Double]]){   
       if (!z.contains(x)){
@@ -121,7 +165,8 @@ object reader {
     }
    }
     
-    private def insideProb():Map[(Int,Int),Map[String,Double]] = {   
+    private def insideProb():Map[(Int,Int),Map[String,Double]] = {  
+      var inside : Map[(Int,Int),Map[String,Double]] = Map() 
       for (item <- x){ 
 	item match { 
 	  case x : l => {
@@ -138,7 +183,8 @@ object reader {
       return inside 
     }
 
-    private def outsideProb() = { 
+    private def outsideProb(inside:Map[(Int,Int),Map[String,Double]]):Map[(Int,Int),Map[String,Double]] = { 
+      var outside : Map[(Int,Int),Map[String,Double]] = Map() 
       def addRuleType(r:Rule,pos:Rule){
 	if (!rules.contains(r)){
 	  rules += (r -> List(pos))
@@ -170,16 +216,17 @@ object reader {
 	  case _ => 
 	}	
       }
+      return outside
     }
 
-    var insideVals = insideProb() 
-    var outsideVals = outsideProb()
-
-    //for (item<-insideVals)println(item)
+  
+    for (item<-insideVals)println(item)
     println("========")
-    for (item<-outside)println(item)
-
-   
+    for (item<-outsideVals)println(item)
+    println("========")
+    for (item<-rules)println(item)
+    println("========")
+    
   }
 
   def main(args: Array[String]) {
@@ -187,16 +234,35 @@ object reader {
     val src = Source.fromFile("forest2.xml")
     val er = new XMLEventReader(src)
     var inputSize : Int = 0
-  
+    var count : Map[String, Map[Rule,Double]] = Map()
+
     while (er.hasNext){
       er.next match {
+	case EvElemStart(_,"trainingData",_,_) => 
+	  println("beginning of training")
 	case EvElemStart(_,"Length",attr,_) => 
 	  inputSize = attr.apply("lVal").toString.toInt
 	case EvElemStart(_,"Rules",_,_) => 
 	  var forest = sentenceEvent(er)
-	  var insideO = new insideOutProb(forest, inputSize)
-	case EvElemEnd(_,"trainingData") =>
+	  var insideO = new insideOutProb(forest, inputSize, count)
+	case EvElemEnd(_,"trainingData") =>	  
 	  println("end training") 
+      
+	  for ((entry,values) <- count){ 
+	    var ruleSum : Double = (values.unzip._2).sum
+	    var sum : Double = 0
+	    for ((rule,count) <- values){
+	      rule match { 
+		case x : rule2 => 
+		  println(x.r+" => "+count/ruleSum)
+		  sum += count/ruleSum
+		case y : rule1 => 
+		  println(y.r+" => "+count/ruleSum)
+		  sum += count/ruleSum
+	      }
+	    }
+	    println(sum); sum = 0
+	  }
 	case _ => 
       }
     }
