@@ -7,27 +7,23 @@ object reader {
   
   abstract class Rule { 
     def head:(Int,String,Int)= (0," ",0); def headLoc:(Int,Int)={(0,0)}
-    def prob:Double=0.0   
+    def prob:Double=0.0
   }
   case class l(r:((Int,String,Int),(Int,String,Int),Double)) extends Rule { 
     override def head : (Int,String,Int) = {r._1}
     override def headLoc:(Int,Int) = {(r._1._1,r._1._3)} 
-    override def prob : Double = {r._3}
-    def dep : (Int,String,Int) = {r._2}; 
+    override def prob : Double = {r._3}; def dep : (Int,String,Int) = {r._2}; 
     def ruleType : (String,String) = {(r._1._2,r._2._2)}
   }
   case class b(r:((Int,String,Int),((Int,String,Int),(Int,String,Int)),Double)) extends Rule {
     override def head : (Int,String,Int) = {r._1}; 
-    override def headLoc:(Int,Int) = {(r._1._1,r._1._3)} 
-    override def prob : Double = {r._3}
+    override def headLoc:(Int,Int) = {(r._1._1,r._1._3)};override def prob : Double = {r._3}
     def ruleType : (String,String,String) = {(r._1._2,r._2._1._2,r._2._2._2)} 
     def dep : ((Int,String,Int),(Int,String,Int)) = {r._2}
-    def dep1 : (Int,String,Int) = dep._1
-    def dep2 : (Int,String,Int) = dep._2 
+    def dep1 : (Int,String,Int) = dep._1; def dep2 : (Int,String,Int) = dep._2 
   }
   case class prule(r:((Int,String,Int),Double)) extends Rule { 
-    override def head : (Int,String,Int) = r._1
-    override def prob : Double = r._2
+    override def head : (Int,String,Int) = r._1; override def prob : Double = r._2
   } 
   case class lex(r:(Int,String,Int)) extends Rule {
     override def head : (Int,String,Int) = {r}
@@ -36,6 +32,7 @@ object reader {
   case class rule2(r:((String,String),Double)) extends Rule 
   case class lo(r:(Int,Int)) extends Rule 
   case class lo2(r:((Int,Int),(Int,Int),(Int,Int))) extends Rule 
+
 
   var readingText = false 
 
@@ -64,7 +61,11 @@ object reader {
     } 
   }
 
-  private def sentenceEvent(ev : XMLEventReader) : List[Rule] = {
+  private def sentenceEvent(ev : XMLEventReader, updateM:Map[Any,Double]):List[Rule] = {
+    def updatePar(old:Any,prob:Double): Double = {
+      if (updateM.contains(old)){return updateM(old) }
+      else {return prob}
+    }
     def toFormat(des : String, sev : XMLEventReader): Rule =   { 
       var done2 = false
       var result : Rule = lex((0,"f",0))
@@ -86,12 +87,14 @@ object reader {
 	case EvElemStart(_,"Binary",atr,_) => {
 	  val headRule = getAttrVals("Binary",atr)
 	  var r1 = toFormat("C1",ev).head; val r2 = toFormat("C2",ev).head
-	  forest = b((headRule.head,(r1,r2),headRule.prob))::forest
+	  forest = b((headRule.head,(r1,r2),updatePar(
+	    (headRule.head._2, r1._2,r2._2),headRule.prob)))::forest
 	}
 	case EvElemStart(_,"Unary",atr,_) => {
 	  val headRule = getAttrVals("Unary",atr)
 	  var terminal = toFormat("Unary", ev).head
-	  forest = l((headRule.head,terminal,headRule.prob))::forest
+	  forest = l((headRule.head,terminal,updatePar(
+	    (headRule.head._2, terminal._2),headRule.prob)))::forest
 	}
 	case EvElemEnd(_,"sentence") => {
 	    done = true 
@@ -217,56 +220,56 @@ object reader {
 	}	
       }
       return outside
-    }
-
-  
-    for (item<-insideVals)println(item)
-    println("========")
-    for (item<-outsideVals)println(item)
-    println("========")
-    for (item<-rules)println(item)
-    println("========")
-    
+    }    
   }
 
   def main(args: Array[String]) {
-
-    val src = Source.fromFile("forest2.xml")
-    val er = new XMLEventReader(src)
-    var inputSize : Int = 0
-    var count : Map[String, Map[Rule,Double]] = Map()
-
-    while (er.hasNext){
-      er.next match {
-	case EvElemStart(_,"trainingData",_,_) => 
-	  println("beginning of training")
-	case EvElemStart(_,"Length",attr,_) => 
-	  inputSize = attr.apply("lVal").toString.toInt
-	case EvElemStart(_,"Rules",_,_) => 
-	  var forest = sentenceEvent(er)
-	  var insideO = new insideOutProb(forest, inputSize, count)
-	case EvElemEnd(_,"trainingData") =>	  
-	  println("end training") 
-      
-	  for ((entry,values) <- count){ 
-	    var ruleSum : Double = (values.unzip._2).sum
-	    var sum : Double = 0
-	    for ((rule,count) <- values){
-	      rule match { 
-		case x : rule2 => 
-		  println(x.r+" => "+count/ruleSum)
+    var reMap : Map[Any,Double] = Map() 
+    def readXML(um: Map[Any,Double]):Map[Any,Double] = { 
+      val src = Source.fromFile("forest2.xml")
+      val er = new XMLEventReader(src)
+      var inputSize : Int = 0
+      var count : Map[String, Map[Rule,Double]] = Map()
+      while (er.hasNext){
+	er.next match {
+	  case EvElemStart(_,"Length",attr,_) => 
+	    inputSize = attr.apply("lVal").toString.toInt
+	  case EvElemStart(_,"Rules",_,_) => 
+	    var forest = sentenceEvent(er,reMap)
+	    var insideO = new insideOutProb(forest, inputSize, count)
+	  case EvElemEnd(_,"trainingData") =>	   	  
+	    for ((entry,values) <- count){ 
+	      var ruleSum : Double = (values.unzip._2).sum
+	      var sum : Double = 0
+	      for ((rule,count) <- values){
+		rule match { 
+		  case x : rule2 => 
+		    println(x.r+" => "+count/ruleSum)
+		  reMap += (x.r._1 -> count/ruleSum)
+		  //println(x.r)
 		  sum += count/ruleSum
-		case y : rule1 => 
-		  println(y.r+" => "+count/ruleSum)
-		  sum += count/ruleSum
+		  case y : rule1 => 
+		    println(y.r+" => "+count/ruleSum)
+		    reMap += (y.r._1 -> count/ruleSum)
+		    sum += count/ruleSum
+		}
 	      }
+	    //println(sum); 
+	      sum = 0
 	    }
-	    println(sum); sum = 0
-	  }
-	case _ => 
-      }
+	    println("======")
+	  case _ => 
+	}
+      }  
+      return um 
     }
-    
+
+    var i = 0
+    while (i < 4) { 
+      var reMap2 = readXML(reMap) 
+      readXML(reMap2)
+      i += 1 
+    }
   }
 }
 
