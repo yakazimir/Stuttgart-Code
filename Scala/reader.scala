@@ -35,7 +35,6 @@ object reader {
 
 
   var readingText = false 
-
   val src = Source.fromFile("forest2.xml")
   val er = new XMLEventReader(src)
 
@@ -45,16 +44,19 @@ object reader {
     var sp = attributes.apply("span").toString.toInt
         
     x match { 
-      case "Binary"|"Unary" => { 
+      case "Binary"|"Unary" => 
+      { 
 	var cat = attributes.apply("cat").toString 
 	var weight = attributes.apply("weight").toString.toDouble
 	return prule(((st,cat,sp),weight))
       }
-      case "C1"|"C2" => {
+      case "C1"|"C2" => 
+      {
 	var cat = attributes.apply("cat").toString
 	return lex((st,cat,sp))
       }
-      case "terminal" => {
+      case "terminal" => 
+      {
 	var word = attributes.apply("word").toString
 	return lex((st,word,sp))
       }
@@ -71,7 +73,8 @@ object reader {
       var result : Rule = lex((0,"f",0))
       while (sev.hasNext && !done2){
 	  sev.next match {
-	    case EvElemStart(_,des,atrs,_) => {
+	    case EvElemStart(_,des,atrs,_) => 
+	    {
 	      result = getAttrVals(des,atrs)
 	      done2 = true 
 	    }
@@ -84,19 +87,22 @@ object reader {
     var forest : List[Rule] = List()
     while (ev.hasNext && !done) {
       ev.next match {
-	case EvElemStart(_,"Binary",atr,_) => {
+	case EvElemStart(_,"Binary",atr,_) => 
+	{
 	  val headRule = getAttrVals("Binary",atr)
 	  var r1 = toFormat("C1",ev).head; val r2 = toFormat("C2",ev).head
 	  forest = b((headRule.head,(r1,r2),updatePar(
 	    (headRule.head._2, r1._2,r2._2),headRule.prob)))::forest
 	}
-	case EvElemStart(_,"Unary",atr,_) => {
+	case EvElemStart(_,"Unary",atr,_) =>
+	{
 	  val headRule = getAttrVals("Unary",atr)
 	  var terminal = toFormat("Unary", ev).head
 	  forest = l((headRule.head,terminal,updatePar(
 	    (headRule.head._2, terminal._2),headRule.prob)))::forest
 	}
-	case EvElemEnd(_,"sentence") => {
+	case EvElemEnd(_,"sentence") => 
+	{
 	    done = true 
 	}
 	case _ =>       
@@ -132,12 +138,15 @@ object reader {
 	var product : Double = 0 
 	for (listE <- rulePoss){
 	  listE match { 
-	    case lex : lo => 
+	    case lex : lo =>
+	    {
 	      product += outsideVals(lex.r)(ruleP._1)  
-	    case nl : lo2 => 
+	    }
+	    case nl : lo2 =>
+	    { 
 	      product += (outsideVals(nl.r._1)(ruleP._1)*
 			  insideVals(nl.r._2)(ruleP._2) * insideVals(nl.r._3)(ruleP._3))
-	    
+	    }
 	  }
 	}
 	product 
@@ -145,12 +154,15 @@ object reader {
       for ((rule,pos) <- rules) {
 	rule match { 
 	  case x : rule1 => 
+	  {
 	    countCalc(x.r._1._1,x,(x.r._2/sentenceProb)*
 		      calcSum(x.r._1,pos),count)
-	  case y : rule2 => 
+	  }
+	  case y : rule2 =>
+	  {
 	    countCalc(y.r._1._1,y,(y.r._2/sentenceProb)
 		      * calcSum((y.r._1._1,y.r._1._2, " "), pos),count)
-	    
+	  } 
 	}
       }
     }
@@ -159,23 +171,25 @@ object reader {
       if (!z.contains(x)){
 	z += (x -> Map(y -> y2))
       }
-    else {
-      if (z(x).contains(y)){
-	var upd : Double = z(x)(y) + y2
-	z(x) += (y -> upd)
-      } 
-      else {z(x) += (y -> y2)}
+      else {
+	if (z(x).contains(y)){
+	  var upd : Double = z(x)(y) + y2
+	  z(x) += (y -> upd)
+	} 
+	else {z(x) += (y -> y2)}
+      }
     }
-   }
     
     private def insideProb():Map[(Int,Int),Map[String,Double]] = {  
       var inside : Map[(Int,Int),Map[String,Double]] = Map() 
       for (item <- x){ 
 	item match { 
-	  case x : l => {
+	  case x : l => 
+	  {
 	    checkExist(x.headLoc,x.head._2, x.prob,inside)
-	}
-	  case y : b => { 
+	  }
+	  case y : b => 
+	  { 
 	    var f : Double = (y.prob * inside((y.dep1._1,y.dep1._3))(y.dep1._2)*
 			      inside((y.dep2._1,y.dep2._3))(y.dep2._2))
 	      checkExist(y.headLoc,y.head._2,f,inside)
@@ -204,9 +218,12 @@ object reader {
       }
       for (item <- x.reverse) { 
 	item match { 
-	  case x : l => 
+	  case x : l =>
+	  {
 	    addRuleType(rule2((x.ruleType,x.prob)),lo(x.headLoc))
+	  }
 	  case y : b => 
+	  {
 	    addRuleType(rule1((y.ruleType, y.prob)),
 			      lo2((y.headLoc,(y.dep1._1,y.dep1._3),(y.dep2._1,y.dep2._3))))
 	    if (y.head == (0,"S",size)){
@@ -216,6 +233,7 @@ object reader {
 	    else { 
 	      rec(y.head,y.dep,y.prob)
 	    }
+	  }
 	  case _ => 
 	}	
       }
@@ -223,53 +241,60 @@ object reader {
     }    
   }
 
+  private def  printParameters(count:Map[String,Map[Rule,Double]],reMap:Map[Any,Double]):Map[Any,Double]= {
+    for ((entry,values) <- count){ 
+      var ruleSum : Double = (values.unzip._2).sum
+      for ((rule,count) <- values){
+	rule match { 
+	  case x : rule2 =>
+	    {
+	      println(x.r+" => "+count/ruleSum)
+	      reMap += (x.r._1 -> count/ruleSum)
+	    }
+	  case y : rule1 => 
+	    {
+	      println(y.r+" => "+count/ruleSum)
+	      reMap += (y.r._1 -> count/ruleSum)
+	    }
+	}
+      }
+    }
+    println("======")
+    return reMap
+  }
+
   def main(args: Array[String]) {
     var reMap : Map[Any,Double] = Map() 
     def readXML(um: Map[Any,Double]):Map[Any,Double] = { 
       val src = Source.fromFile("forest2.xml")
-      val er = new XMLEventReader(src)
-      var inputSize : Int = 0
+      val er = new XMLEventReader(src); var inputSize : Int = 0
       var count : Map[String, Map[Rule,Double]] = Map()
       while (er.hasNext){
 	er.next match {
 	  case EvElemStart(_,"Length",attr,_) => 
+	  {
 	    inputSize = attr.apply("lVal").toString.toInt
-	  case EvElemStart(_,"Rules",_,_) => 
+	  }
+	  case EvElemStart(_,"Rules",_,_) =>
+	  { 
 	    var forest = sentenceEvent(er,reMap)
 	    var insideO = new insideOutProb(forest, inputSize, count)
-	  case EvElemEnd(_,"trainingData") =>	   	  
-	    for ((entry,values) <- count){ 
-	      var ruleSum : Double = (values.unzip._2).sum
-	      var sum : Double = 0
-	      for ((rule,count) <- values){
-		rule match { 
-		  case x : rule2 => 
-		    println(x.r+" => "+count/ruleSum)
-		  reMap += (x.r._1 -> count/ruleSum)
-		  //println(x.r)
-		  sum += count/ruleSum
-		  case y : rule1 => 
-		    println(y.r+" => "+count/ruleSum)
-		    reMap += (y.r._1 -> count/ruleSum)
-		    sum += count/ruleSum
-		}
-	      }
-	    //println(sum); 
-	      sum = 0
-	    }
-	    println("======")
+	  }
+	  case EvElemEnd(_,"trainingData") =>
+	  {
+	    reMap = printParameters(count,reMap) 
+	  }
 	  case _ => 
 	}
       }  
       return um 
     }
-
+    
     var i = 0
     while (i < 4) { 
       var reMap2 = readXML(reMap) 
       readXML(reMap2)
       i += 1 
-    }
+    } 
   }
 }
-
