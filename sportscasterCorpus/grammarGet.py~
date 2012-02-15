@@ -1,0 +1,84 @@
+import re 
+player = re.compile('\*n\:Player -> \(\{ (\w+[0-9]+) \}\)')  
+playMode = re.compile('\*n\:Playmode -> \(\{ ((\w+\_?\w*)+) \}\)')
+listItems = ['\*n\:S -> \(\{ (\w+) \}\)', 
+             '\*n:S -> \(\{ (\w+) \( \*n:(\w+) \) \}\)', 
+             '\*n:S -> \(\{ (\w+) \( \*n:(\w+) \, \*n:(\w+) \) \}\)'] 
+relation = re.compile("|".join(listItems))
+
+file1 = open("newGrammar-MRL.txt")
+#trainingFile = open(
+
+players = [] 
+playModes = [] 
+sentenceNodes = {}  
+
+def ruleType(s):
+    predicate = s[0]
+    try: 
+        arg1 = s[1]
+        try : 
+            arg2 = s[2]
+            sentenceNodes[predicate]=(arg1,arg2)
+        except:
+            sentenceNodes[predicate]=(arg1) 
+    except: 
+        sentenceNodes[predicate] = 0 
+
+for line in file1: 
+    pL = re.search(player, line); pM = re.search(playMode,line) 
+    relationR = re.search(relation,line)
+    if pL: 
+        players.append(pL.groups()[0])
+    elif pM: 
+        playModes.append(pM)
+    elif relationR:
+        items = [i for i in filter(
+                (lambda x: x !=None),
+                list(relationR.groups()))] 
+        ruleType(items)
+    file1.closed
+
+
+#Printing root nodes 
+print "Root -> S{null}"
+for item in sentenceNodes: print "Root -> S{"+item+"}" 
+
+##here look at contexts for each relation 
+
+
+
+
+
+
+
+
+
+
+
+     
+       #  print relationR.groups(
+#             [i for i in filter((lambda x : x != None), 
+#                                list(relationR.groups()))])
+
+        #print [i for i in filter("None",list(relationR.groups()))]
+        #new = list( filter((lambda x : x != "None"), list(relationsR.groups())))
+        #print relationR.groups().filter("None")
+
+
+#list( filter((lambda x: x < 0), range(-5,5)))
+
+        #[i for i in relationR.groups()
+        #ruleType([i for i in relationR.groups()!="none"])
+
+
+
+
+
+    # elif zeroR || unaryR || binaryR: 
+#         ruleType(zeroR)
+#     elif unaryR: 
+#         ruleType(unaryR)
+#     elif binaryRule: 
+#         ruleType(binaryRule)
+
