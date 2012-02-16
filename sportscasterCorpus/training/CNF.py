@@ -2,7 +2,7 @@ import re
 from sets import Set
 from itertools import permutations
 
-##FILES 
+##FILES ##TRAINING FILES ARE TRAINING DATA EXT.
 file1 = open("../original-MRLGrammar.txt")
 trainingFiles = ['2001final-train', 
                  '2002final-train', 
@@ -52,11 +52,16 @@ for line in file1:
                 (lambda x: x !=None),
                 list(relationR.groups()))] 
         ruleType(items)
-    
+    else: 
+        pass 
     file1.closed
 
 #WORDS FROM TRAINING DATA 
     
+###################################
+# CONTEXT AND WORDS FROM TRAINING #
+###################################
+
 trainingSentences = {} 
 contexts = []
 contextIndex = {}
@@ -85,7 +90,8 @@ for game in trainingFiles:
         if text:
             sentence = text.groups()[0] 
             for word in text.groups()[0].split(" "): 
-                # words[word] =\
+                ##LOWER CASE OR UPPER 
+#                 words[word] =\
 #                     words.setdefault(word,0) + 1 
                 words[word.lower()] =\
                     words.setdefault(word.lower(),0) + 1 
@@ -103,11 +109,8 @@ for game in trainingFiles:
 
 predicateContext = {}
 
-#items = [i for i in filter(
-#                (lambda x: x !=None),
-#                list(relationR.groups()))] 
 
-
+###RELATIONS WITH CONTEXTS
 for item in contexts:
    for item2 in item:
        if not re.search('^\w+$', item2): 
@@ -123,8 +126,12 @@ for item in contexts:
            else: 
                predicateContext[item2] = [contexts.index(item)]
 
-#Printing GRAMMAR
+###################################
+###################################
+###################################
 
+
+###PRINTING GRAMMAR 
 
 ##########################
 # COMPILING S NODE LISTS #
@@ -141,7 +148,6 @@ startLeft = {}
 
 def withContext(loc,tuple, predicate): 
     global startLeft 
-    #print "\t"+str(loc)
     if isinstance(tuple,str): 
         st = "S{"+tuple+"}"
     else: 
@@ -149,24 +155,17 @@ def withContext(loc,tuple, predicate):
             st = "S{"+tuple[0]+"("+tuple[1]+","+tuple[2]+")}"
         except: 
             st = "S{"+tuple[0]+"("+tuple[1]+")}"
-    #print st 
     f = []
     for num in loc: 
-        #print num 
         if len(tuple) > 4: 
             f.append((tuple,num))
-            #print tuple+str(num)
         else:
             g = [] 
             for arr in permutations(list(tuple),len(tuple)): 
-                g.append(arr)
-                #print f
-                #print str(arr)+str(num)   
+                g.append(arr) 
             f.append((g,num))
         
     startLeft[st] = f 
-    #print "\t"+str(len(f)) 
-    #print f
 
 for item in sentenceNodes:
     if isinstance(sentenceNodes[item], tuple): 
@@ -259,138 +258,120 @@ while h < 954:
 ####################
 ####################
 
+#################
+# PHRASE NODES  #
+#################
 
-
-
-
-
-
-print "Phrase{null} --> Word{null}"; j += 1 
-print "Phrase{null} --> Phrase{null} Word{null}"; j += 1 
+print "Phrase{null} --> Word{null} "+ str(1.0); j += 1 
+print "Phrase{null} --> Phrase{null} Word{null} "+ str(1.0); j += 1 
 
 for item in players:
     j += 3
-    print "Phrase{"+item+"} --> "+"Word{"+item+"}"
-    print "Phrase{"+item+"} --> PhX{"+item+"} "+"Word{"+item+"}"
-    print "Phrase{"+item+"} --> PhX{"+item+"} "+"Word{null}"
+    unifPhr = float(float(1.0)/float(3.0))
+    print "Phrase{"+item+"} --> "+"Word{"+item+\
+        "} "+str(unifPhr)
+    print "Phrase{"+item+"} --> PhX{"+item+"} "+\
+        "Word{"+item+"} "+str(unifPhr)
+    print "Phrase{"+item+"} --> PhX{"+item+"} "+\
+        "Word{null} "+str(unifPhr)
 
-for item in playModes: 
-    print "Phrase{"+item.groups()[0]+"} --> "+"Word{"+item.groups()[0]+"}"
-    print "Phrase{"+item.groups()[0]+"} --> PhX{"+item.groups()[0]+"} "+"Word{"+item.groups()[0]+"}"
-    print "Phrase{"+item.groups()[0]+"} --> PhX{"+item.groups()[0]+"} "+"Word{null}"
+for item in playModes:
+    unifPhr = float(float(1.0)/float(3.0))
+    print "Phrase{"+item.groups()[0]+"} --> "+\
+        "Word{"+item.groups()[0]+"} "+str(unifPhr)
+    print "Phrase{"+item.groups()[0]+"} --> PhX{"+item.groups()[0]+"} "+\
+        "Word{"+item.groups()[0]+"} "+str(unifPhr)
+    print "Phrase{"+item.groups()[0]+"} --> PhX{"+\
+        item.groups()[0]+"} "+"Word{null} "+str(unifPhr)
     j+= 3
 
 for item in players:
     j += 4
-    print "PhX{"+item+"} --> "+"Word{"+item+"}"
-    print "PhX{"+item+"} --> PhX{"+item+"} "+"Word{"+item+"}"
-    print "PhX{"+item+"} --> PhX{"+item+"} "+"Word{null}"
-    print "PhX{"+item+"} --> Word{null}"
+    unifPhx = float(float(1.0)/float(4.0))
+    print "PhX{"+item+"} --> "+"Word{"+item+"} "+str(unifPhx)
+    print "PhX{"+item+"} --> PhX{"+item+"} "+\
+        "Word{"+item+"} "+str(unifPhx)
+    print "PhX{"+item+"} --> PhX{"+item+\
+        "} "+"Word{null} "+str(unifPhx)
+    print "PhX{"+item+"} --> Word{null} "+\
+        str(unifPhx)
 
 for item in playModes: 
-    print "PhX{"+item.groups()[0]+"} --> "+"Word{"+item.groups()[0]+"}"
-    print "PhX{"+item.groups()[0]+"} --> Word{null}"
-    print "PhX{"+item.groups()[0]+"} --> PhX{"+item.groups()[0]+"} "+"Word{"+item.groups()[0]+"}"
-    print "PhX{"+item.groups()[0]+"} --> PhX{"+item.groups()[0]+"} "+"Word{null}"
+    unifPhx = float(float(1.0)/float(4.0))
+    print "PhX{"+item.groups()[0]+"} --> "+\
+        "Word{"+item.groups()[0]+"} "+str(unifPhx)
+    print "PhX{"+item.groups()[0]+\
+        "} --> Word{null} "+str(unifPhx)
+    print "PhX{"+item.groups()[0]+"} --> PhX{"+\
+        item.groups()[0]+"} "+"Word{"+item.groups()[0]+"} "+str(unifPhx)
+    print "PhX{"+item.groups()[0]+"} --> PhX{"+\
+        item.groups()[0]+"} "+"Word{null} "+str(unifPhx)
     j+= 4
 
 for item in players:
     j += 3
-    print "Ph{"+item+"} --> PhX{"+item+"} "+"Word{"+item+"}"
-    print "Ph{"+item+"} --> PhX{"+item+"} "+"Word{null}"
-    print "Ph{"+item+"} --> "+"Word{null}"
+    unifPhr = float(float(1.0)/float(3.0))
+    print "Ph{"+item+"} --> PhX{"+item+"} "+\
+        "Word{"+item+"} "+str(unifPhr)
+    print "Ph{"+item+"} --> PhX{"+item+"} "+\
+        "Word{null} "+str(unifPhr)
+    print "Ph{"+item+"} --> "+"Word{null} "+str(unifPhr)
     
 
 for item in playModes: 
-    print "Ph{"+item.groups()[0]+"} --> PhX{"+item.groups()[0]+"} "+"Word{"+item.groups()[0]+"}"
-    print "Ph{"+item.groups()[0]+"} --> PhX{"+item.groups()[0]+"} "+"Word{null}"
-    print "Ph{"+item.groups()[0]+"} --> "+"Word{null}"
+    unifPhr = float(float(1.0)/float(3.0))
+    print "Ph{"+item.groups()[0]+"} --> PhX{"+\
+        item.groups()[0]+"} "+"Word{"+item.groups()[0]+"} "+str(unifPhr)
+    print "Ph{"+item.groups()[0]+"} --> PhX{"+\
+        item.groups()[0]+"} "+"Word{null} "+str(unifPhr)
+    print "Ph{"+item.groups()[0]+"} --> "+\
+        "Word{null} "+str(unifPhr)
     j+= 3
 
 
+#################
+#################
+#################
+
+
+#####################
+# PRINTING CONCEPTS #
+#####################
+
+unifW = float(1.0/954.0)
+
 for word in words.keys(): 
     j += 1
-    print "Word{null} --> "+word
+    print "Word{null} --> "+word+" "+\
+        str(unifW)
 
 for item in players: 
     for word in words.keys(): 
         j += 1
-        print "Word{"+item+"} --> "+word
+        print "Word{"+item+"} --> "+\
+            word+" "+str(unifW)
 
 for item in playModes: 
     for word in words.keys(): 
         j+=1 
-        print "Word{"+item.groups()[0]+"} --> "+word
+        print "Word{"+item.groups()[0]+\
+            "} --> "+word+" "+str(unifW)
 
+#####################
+#####################
+#####################
+
+################
+# Context maps #
+################
 
 for item in contexts: 
-    print "c"+str(contexts.index(item))+" --> "+str(contexts.index(item))
+    print "c"+str(contexts.index(item))+\
+        " --> "+str(contexts.index(item))+" "+str(1.0)
     j += 1
 
-#for item in contexts: 
-#    print "c"+str(contexts.index(item))+" --> "+str(contexts.index(item))
-#    j += 1
+################
+################
 
-
+#FINAL RULE COUNT
 print j 
-
-
-
-
-#for item in predicateContext: 
-#    print item 
-#    for num in predicateContext[item]:
-#        print "\t"+str(num)       
-#print predicateContext.keys()
-
-
-
-
-
-
-
-
-
-
-#print "\t"
-#print len(contexts)
-#print len(contextIndex.keys())
-
-###print contexts 
-#for item in contexts: 
-#    print item
-
-#print len(contexts.keys())
-
-
-
-
-        #contexts[tuple(contextVal)] =\
-        #    contexts.setdefault(tuple(contextVal),0) + 1
-
-#print str(num)+": ",
-        #print "\t"+value[0]
-
-
-        # for item in contexts: 
-#             print "\t"+str(vals[path])
-        # for path in value[1]: 
-#             print "\t"+str(vals[path])
-
-
-
-#print "\t"+sentence 
-            #print "\t"+str(semM.groups()[0].split(" "))   
-#print i 
-
-
-#print semVal.groups()[0]
-            #print semVal.groups()[1]
-
-# print i 
-# for word in words: 
-#     print word
-
-# print words
-# print len(words.keys())
-#print text.groups()[0].split(" ")
