@@ -1,0 +1,12 @@
+####EXAMPLE CONTEXT FILE
+###ATTRIBUTES FOR OBJECTS
+attributes:s t u v w x y z
+####OBJECTS OF INTEREST TO CLUSTER
+objects:a b c d e
+####
+a--t u w x z 
+b--s v y z
+c--s t u v x y 
+d--t w x 
+e--s t w x y z
+##thrill.remove(s => s.length == 4)
