@@ -9,7 +9,8 @@ import scala.collection.mutable.{Map}
 
 object FC { 
 
-  var file = Source.fromFile("exampleObjects.txt").getLines.toList
+  //var file = Source.fromFile("exampleObjects.txt").getLines.toList
+  var file = Source.fromFile("newTest.txt").getLines.toList
 
   def compute_closure(B : List[Int], y : Int, n : Int, ob : objectAndAttrs) : List[Int]  = { 
 
@@ -23,25 +24,23 @@ object FC {
 	    m = false; break
 	  }
 	}
-      }
+      } 
       if (m) { 
 	for (z <- (0 to n)) {  
 	  if (!ob.context.contains((i,z))) D(z) = 0
 	}
       } 
-    }
+    } 
     return(D.zipWithIndex.filter(s => s._1 == 1).unzip._2.toList)
   }
 
   class intents(obj : objectAndAttrs, n : Int, attr : Set[Int]) {
 
     var i : Int = 1
-
     private def projectConcepts(B : List[Int]) {
 
-      var U : List[Int] = List()
-      println("INTENT:"+i+" "+B) 
-      i += 1
+      var U : List[Int] = List(); var Z : List[String] = List()
+      println("INTENT:"+i+" "+B); i += 1
 
       if (B != List()) {
 	breakable {       
@@ -52,10 +51,11 @@ object FC {
 	      if (U == List()) break
 	    }
 	  }
+	  if (U != List()) Z = U.map(s => obj.objectVals(s))
 	}
       }
-      else U = obj.objectVals.keys.toList.sorted
-      println("\t"+(U,B))
+      else Z = obj.objectVals.keys.toList.map(s => obj.objectVals(s))
+      println("\tConcept: "+(Z,B))
     }
 
     def generate_from(F : List[Int], y : Int) { 
@@ -94,7 +94,6 @@ object FC {
     var context = new scala.collection.mutable.ListBuffer[(Int,Int)]
     private var xM : List[String] = List(); private var objectNum : List[String] = List()
   
-
     private def computeVals(line : String) { 
 
       val commentOrEmpty = "(^\\#+.+|^\\n$)".r ; val attributeList = "(^attributes.+)".r
