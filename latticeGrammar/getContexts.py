@@ -9,7 +9,7 @@ contexts = Set(); objects = {}
 to = 0
 for l in sentences:
 
-    print ("START",' '.join(l),"END")
+    #print ("START",' '.join(l),"END")
 
     for i in range(len(l)): 
         
@@ -18,15 +18,21 @@ for l in sentences:
         
 
         m = l[i]
-        if l[:i] == [] : le = "END"
+        if l[:i] == [] : le = "START"
         else: le = ' '.join(l[:i]) 
 
-        if l[i+1:] == [] : r = "START" 
+        if l[i+1:] == [] : r = "END" 
         else: r = ' '.join(l[i+1:])
 
-        #print le,; print m,; print r
+        c = (le,r); f = re.sub(', ',',',str(c))
 
-        print (le,m,r)
+        #print (le,m,r)
+
+        contexts.add(f)
+
+        if m in objects.keys(): 
+            objects[m].add(f) 
+        else: objects[m] = Set([f])
 
 
         ###FOR PRODUCING WORD DISTRIBUTIONS 
@@ -54,18 +60,31 @@ for l in sentences:
 ####PRINTING LIST FOR FC PROGRAM
 print "######FUTBOL CONTEXT FILE###"
 print "####ATTRIBUTES"
-print "attributes:",
-for item in contexts: print re.sub(', ',',',item),
-print
+#print "attributes:",
+#for item in contexts: #print re.sub(', ',',',item),
+
+print "attributes:"+";".join(contexts)
 print "################"
-print "objects:", 
-for item in objects.keys(): print re.sub(', ',',',item), 
-print 
+print "objects:"+";".join(objects.keys())
+
+
 print "################"
 print "################"
 
 for (i,j) in objects.items() : 
-    print i+"--"+" ".join(j)
+    print i+"--"+";".join(j)
+
+
+
+
+# print "objects:", 
+# for item in objects.keys(): print re.sub(', ',',',item), 
+# print 
+# print "################"
+# print "################"
+
+# for (i,j) in objects.items() : 
+#     print i+"--"+";".join(j)
 
 
 ######################
@@ -79,3 +98,4 @@ for (i,j) in objects.items() :
 #             print item
 #print len(contexts)
 #print p
+
