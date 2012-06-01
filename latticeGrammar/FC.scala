@@ -10,9 +10,10 @@ import scala.collection.mutable.{Map}
 object FC { 
 
   //var file = Source.fromFile("exampleObjects.txt").getLines.toList
-  var file = Source.fromFile("newTest.txt").getLines.toList
+  //var file = Source.fromFile("newTest.txt").getLines.toList
+  var file = Source.fromFile("synConcepts.txt").getLines.toList
 
-  def compute_closure(B : List[Int], y : Int, n : Int, ob : objectAndAttrs) : List[Int]  = { 
+  def compute_closure(B : List[Int], y : Int, n : Int, ob : objectAndAttrs) : List[Int] = { 
 
     val D = Array.fill[Int](n+1)(1)
 
@@ -100,17 +101,17 @@ object FC {
       val objectList = "(^objects.+)".r
 
       line match { 
-	case commentOrEmpty(x) => None
+	case commentOrEmpty(x) => Nil
 	case attributeList(y) => { 
 	  try {
-	    xM = y.split(":")(1).split(" ").toList
+	    xM = y.split(":")(1).split(";").toList
 	  } catch { 
 	      case e:ArrayIndexOutOfBoundsException => println("attribute list error"); break
 	  }
 	}
 	case objectList(z) => {
 	    try { 
-	      objectNum = z.split(":")(1).split(" ").toList
+	      objectNum = z.split(":")(1).split(";").toList
 	    } catch { 
 		case e:ArrayIndexOutOfBoundsException => println("object list error"); break
 	    }
@@ -121,7 +122,7 @@ object FC {
 	  objectVals += (objectNum.indexOf(s(0)) -> s(0))
 
 	  try {
-	    for (attr <- s(1).split(" ")){
+	    for (attr <- s(1).split(";")){
 	  
 	      if (rows.isEmpty) rows += (xM.indexOf(attr) -> List(objectNum.indexOf(s(0)))) 
 	      else if (rows.contains(xM.indexOf(attr))) { 
@@ -148,6 +149,10 @@ object FC {
     val n = (objects.rows.keys.toList.length)-1
     val totalAttributes = (objects.rows.keys.toSet)   
     var ints = new intents(objects, n, totalAttributes)
+
+
+    //println(objects.objectVals)
+    //println(objects.rows)
 
     ints.generate_from(List(),0)
 
