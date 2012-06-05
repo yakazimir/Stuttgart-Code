@@ -1,5 +1,5 @@
 //IMPLEMENTATION OF CREATING FORMAL CONCEPTS
-//BASED ON VILEM VYCHODIL 'A New Algorithm for Computing Formal Concepts'
+//BASED LARGELY ON VILEM VYCHODIL 'A New Algorithm for Computing Formal Concepts'
 //KYLE D. RICHARDSON - MAY 2012
 //KYLE@IMS.UNI-STUTTGART.DE
 
@@ -11,7 +11,10 @@ object FC {
 
   //var file = Source.fromFile("exampleObjects.txt").getLines.toList
   //var file = Source.fromFile("newTest.txt").getLines.toList
-  var file = Source.fromFile("synConcepts.txt").getLines.toList
+  //var file = Source.fromFile("synConcepts.txt").getLines.toList
+
+  var file = Source.fromFile("altering.txt").getLines.toList
+
 
   def compute_closure(B : List[Int], y : Int, n : Int, ob : objectAndAttrs) : List[Int] = { 
 
@@ -94,6 +97,7 @@ object FC {
     var objectVals : Map[Int,String] = Map()       
     var context = new scala.collection.mutable.ListBuffer[(Int,Int)]
     private var xM : List[String] = List(); private var objectNum : List[String] = List()
+    var objectAttrs : Map[Int,List[Int]] = Map() 
   
     private def computeVals(line : String) { 
 
@@ -123,10 +127,15 @@ object FC {
 
 	  try {
 	    for (attr <- s(1).split(";")){
-	  
-	      if (rows.isEmpty) rows += (xM.indexOf(attr) -> List(objectNum.indexOf(s(0)))) 
+
+	      if (rows.isEmpty) { 
+		rows += (xM.indexOf(attr) -> List(objectNum.indexOf(s(0)))) 
+		objectAttrs += (objectNum.indexOf(s(0)) -> List(xM.indexOf(attr)))
+	      }
 	      else if (rows.contains(xM.indexOf(attr))) { 
 		rows(xM.indexOf(attr)) = rows(xM.indexOf(attr))++List(objectNum.indexOf(s(0)))
+		//objectAttrs(objectNum.indexOf(s(0))) = 
+		//  objectAttrs(objectNum.indexOf(s(0)))++List(xM.indexOf(attr))
 	      }
 	      else rows += (xM.indexOf(attr) -> List(objectNum.indexOf(s(0))))
 	      context += ((objectNum.indexOf(s(0)),xM.indexOf(attr)))
@@ -141,6 +150,10 @@ object FC {
     for (line <- f) computeVals(line)
     for (i <- xM) rowVals += (xM.indexOf(i) -> i) 
   }
+
+
+  //class filter(
+
 
 
   def main(args : Array[String]) { 
