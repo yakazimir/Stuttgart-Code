@@ -1,0 +1,9 @@
+attributes:domestic;water;mammal;fur;whiskers;swim;fourlegged;gilled
+objects:dog;cat;whale;fish
+###
+dog--domestic;mammal;fur;fourlegged
+cat--domestic;mammal;fur;whiskers;fourlegged
+whale--water;mammal;swim;gilled
+###
+fish--water;swim;gilled
+####

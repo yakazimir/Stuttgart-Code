@@ -134,10 +134,17 @@ object FC {
 	      }
 	      else if (rows.contains(xM.indexOf(attr))) { 
 		rows(xM.indexOf(attr)) = rows(xM.indexOf(attr))++List(objectNum.indexOf(s(0)))
-		//objectAttrs(objectNum.indexOf(s(0))) = 
-		//  objectAttrs(objectNum.indexOf(s(0)))++List(xM.indexOf(attr))
+		
+		if (objectAttrs.contains(objectNum.indexOf(s(0)))) { 
+		  objectAttrs(objectNum.indexOf(s(0))) = 
+		    objectAttrs(objectNum.indexOf(s(0)))++List(xM.indexOf(attr))
+		}
+		else objectAttrs += (objectNum.indexOf(s(0)) -> List(xM.indexOf(attr)))
 	      }
-	      else rows += (xM.indexOf(attr) -> List(objectNum.indexOf(s(0))))
+	      else {
+		rows += (xM.indexOf(attr) -> List(objectNum.indexOf(s(0))))
+		objectAttrs += (objectNum.indexOf(s(0)) -> List(xM.indexOf(attr)))
+	      }
 	      context += ((objectNum.indexOf(s(0)),xM.indexOf(attr)))
 	    }
 	  } catch { 
@@ -164,10 +171,14 @@ object FC {
     var ints = new intents(objects, n, totalAttributes)
 
 
+    
+
     //println(objects.objectVals)
     //println(objects.rows)
 
     ints.generate_from(List(),0)
+
+    println(objects.objectAttrs)
 
   }
 }
