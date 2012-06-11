@@ -9,12 +9,18 @@ import scala.collection.mutable.{Map}
 
 object FC { 
 
+  //standard test file
+  //var file = Source.fromFile("newOne.txt").getLines.toList
+
   //var file = Source.fromFile("exampleObjects.txt").getLines.toList
   //var file = Source.fromFile("newTest.txt").getLines.toList
   //var file = Source.fromFile("synConcepts.txt").getLines.toList
-
   var file = Source.fromFile("altering.txt").getLines.toList
 
+  def time(f: => Unit) = { 
+    val s = System.currentTimeMillis; f 
+    System.currentTimeMillis - s
+  }
 
   def compute_closure(B : List[Int], y : Int, n : Int, ob : objectAndAttrs) : List[Int] = { 
 
@@ -29,12 +35,15 @@ object FC {
 	  }
 	}
       } 
-      if (m) { 
-	for (z <- (0 to n)) {  
-	  if (!ob.context.contains((i,z))) D(z) = 0
+      m match {
+	case true => {
+	  for (z <- (0 to n)) {  
+	    if (!ob.context.contains((i,z))) D(z) = 0
+	  }
 	}
-      } 
-    } 
+	case _ => Nil
+      }
+    }
     return(D.zipWithIndex.filter(s => s._1 == 1).unzip._2.toList)
   }
 
@@ -64,28 +73,30 @@ object FC {
 
     def generate_from(F : List[Int], y : Int) { 
 
-      var B = F ; projectConcepts(B)
-   
+      var B = F ; projectConcepts(B) 
       if (B.toSet == attr || y > n) { return }
       
       for (j <- (y to n)) {
-	if (!(B.contains(j))) {
-	   
-	  B ::= j 
-	  var D = compute_closure(B, j, n, obj)
-	  var skip = false  
-
-	  breakable {	 
-	    for (k <- (0 to j-1)) { 
-	 
-	      if (!(D.contains(k) && B.contains(k)) && 
-		  (D.contains(k) || B.contains(k))) {
-		skip = true; break
+	B.contains(j) match {	   
+	  case false => { 
+	    B ::= j ; var D = compute_closure(B, j, n, obj) 
+	    var skip = false  	    
+	    breakable {	 
+	      for (k <- (0 to j-1)) { 
+		
+		if (!(D.contains(k) && B.contains(k)) && 
+		    (D.contains(k) || B.contains(k))) {
+		      skip = true; break
+		    }
 	      }
 	    }
+	    skip match { 
+	      case false => generate_from(D,j+1)
+	      case _ => None
+	    }
+	    B = B.filter(s => s != j)
 	  }
-	  if (skip == false)  generate_from(D,j+1)
-	  B = B.filter(s => s != j)
+	  case true => None
 	}
       }
     } 
@@ -101,6 +112,12 @@ object FC {
   
     private def computeVals(line : String) { 
 
+      def fillMaps(map : Map[Int,List[Int]], key : Int, val1 : Int) {
+	map.contains(key) match { 
+	  case true => map(key) = map(key)++List(val1) 
+	  case false => map += (key -> List(val1))
+	}
+      }
       val commentOrEmpty = "(^\\#+.+|^\\n$)".r ; val attributeList = "(^attributes.+)".r
       val objectList = "(^objects.+)".r
 
@@ -127,26 +144,10 @@ object FC {
 
 	  try {
 	    for (attr <- s(1).split(";")){
-
-	      if (rows.isEmpty) { 
-		rows += (xM.indexOf(attr) -> List(objectNum.indexOf(s(0)))) 
-		objectAttrs += (objectNum.indexOf(s(0)) -> List(xM.indexOf(attr)))
-	      }
-	      else if (rows.contains(xM.indexOf(attr))) { 
-		rows(xM.indexOf(attr)) = rows(xM.indexOf(attr))++List(objectNum.indexOf(s(0)))
-		
-		if (objectAttrs.contains(objectNum.indexOf(s(0)))) { 
-		  objectAttrs(objectNum.indexOf(s(0))) = 
-		    objectAttrs(objectNum.indexOf(s(0)))++List(xM.indexOf(attr))
-		}
-		else objectAttrs += (objectNum.indexOf(s(0)) -> List(xM.indexOf(attr)))
-	      }
-	      else {
-		rows += (xM.indexOf(attr) -> List(objectNum.indexOf(s(0))))
-		objectAttrs += (objectNum.indexOf(s(0)) -> List(xM.indexOf(attr)))
-	      }
+	      fillMaps(rows, xM.indexOf(attr), objectNum.indexOf(s(0)))    
+	      fillMaps(objectAttrs, objectNum.indexOf(s(0)), xM.indexOf(attr))
 	      context += ((objectNum.indexOf(s(0)),xM.indexOf(attr)))
-	    }
+	    }	      
 	  } catch { 
 	      case e : ArrayIndexOutOfBoundsException => 
 	      println("line missing attributes: "+s(0)); break 
@@ -161,24 +162,19 @@ object FC {
 
   //class filter(
 
-
-
   def main(args : Array[String]) { 
 
     var objects = new objectAndAttrs(file)
+
+    //var timeLoad : Double = time(var objects = new objectAndAttrs(file))
     val n = (objects.rows.keys.toList.length)-1
     val totalAttributes = (objects.rows.keys.toSet)   
     var ints = new intents(objects, n, totalAttributes)
 
+    var timeFun : Double = time(ints.generate_from(List(),0))
 
-    
+    println(timeFun/1000.0)
 
-    //println(objects.objectVals)
-    //println(objects.rows)
-
-    ints.generate_from(List(),0)
-
-    println(objects.objectAttrs)
 
   }
 }
