@@ -5,17 +5,24 @@
 
 import scala.io.Source
 import scala.util.control.Breaks._
-import scala.collection.mutable.{Map}
+import scala.collection.mutable.{Map,HashSet}
 
 object FC { 
+  
+  abstract class Concept
+  case class ConceptTuple(e: List[String], i: List[Int]) extends Concept
+  case class ConceptList(l : List[Concept]) extends Concept
 
   //standard test file
   //var file = Source.fromFile("newOne.txt").getLines.toList
-
   //var file = Source.fromFile("exampleObjects.txt").getLines.toList
   //var file = Source.fromFile("newTest.txt").getLines.toList
   //var file = Source.fromFile("synConcepts.txt").getLines.toList
+  //testing altering
   var file = Source.fromFile("altering.txt").getLines.toList
+  
+  var conceptList = new HashSet[Concept]
+
 
   def time(f: => Unit) = { 
     val s = System.currentTimeMillis; f 
@@ -69,6 +76,8 @@ object FC {
       }
       else Z = obj.objectVals.keys.toList.map(s => obj.objectVals(s))
       println("\tConcept: "+(Z,B))
+      conceptList += ConceptTuple(Z,B)
+      
     }
 
     def generate_from(F : List[Int], y : Int) { 
@@ -160,20 +169,41 @@ object FC {
   }
 
 
-  //class filter(
+  class filter(h : HashSet[Concept]) { 
+
+    //eventually make it more incrememntal
+
+    def powerSet[A](s: Set[A]) =
+      s.foldLeft(Set(Set.empty[A])) {
+	(set, element) =>
+           set union (set map (_ + element))
+    }
+
+    for (i <- h) i match { 
+      
+      case x : ConceptTuple => {
+
+	//var z = powerSet(x.e.toSet) 
+	println(x)
+
+	//println(powerSet(x.e.toSet))
+      }
+      case _ => None 
+
+    }
+
+  }
 
   def main(args : Array[String]) { 
 
     var objects = new objectAndAttrs(file)
-
-    //var timeLoad : Double = time(var objects = new objectAndAttrs(file))
     val n = (objects.rows.keys.toList.length)-1
     val totalAttributes = (objects.rows.keys.toSet)   
     var ints = new intents(objects, n, totalAttributes)
 
-    var timeFun : Double = time(ints.generate_from(List(),0))
-
-    println(timeFun/1000.0)
+    var timeFun : Double = time(ints.generate_from(List(),0)); println(timeFun/1000.0)
+    
+    var fil = new filter(conceptList)
 
 
   }
