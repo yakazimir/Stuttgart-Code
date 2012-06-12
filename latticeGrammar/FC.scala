@@ -169,9 +169,11 @@ object FC {
   }
 
 
-  class filter(h : HashSet[Concept]) { 
+  class filter(h : HashSet[Concept], o : objectAndAttrs) { 
 
     //eventually make it more incrememntal
+
+    var rev : Map[String,Int] = o.objectVals map {_.swap}
 
     def powerSet[A](s: Set[A]) =
       s.foldLeft(Set(Set.empty[A])) {
@@ -183,10 +185,50 @@ object FC {
       
       case x : ConceptTuple => {
 
-	//var z = powerSet(x.e.toSet) 
 	println(x)
 
-	//println(powerSet(x.e.toSet))
+	var s : Set[Int] = Set()
+	var pCount : Float = 0 
+	var z = powerSet(x.e.toSet) 
+	//println(z)
+	//println(x.i)
+
+	for (valu <-z) {
+
+	  if (valu == Set()) { 
+	    if (x.i == List()) pCount += 1
+	    else {}
+
+	  }
+
+	  else { 
+	    
+	    for (obj <- valu) {
+
+	      var oo = o.objectAttrs(rev(obj)).toSet
+
+	      if (s == Set()) s = oo 
+	      else (s = s.intersect(oo))
+	      
+	      //print("\t"+oo)
+	      
+	    }
+	    //println(" intersection: "+s)
+	    //println("\n")
+	    
+	    
+
+	    if (s == x.i.toSet) pCount += 1 
+	    else {} 
+	    s = Set()
+	  }
+	}
+	
+	// try { println(pCount/z.size.toFloat) }
+	// catch { case e : ArithmeticException => None }
+
+	println("\t Score: "+pCount/z.size.toFloat)
+	pCount = 0
       }
       case _ => None 
 
@@ -203,7 +245,7 @@ object FC {
 
     var timeFun : Double = time(ints.generate_from(List(),0)); println(timeFun/1000.0)
     
-    var fil = new filter(conceptList)
+    var fil = new filter(conceptList, objects)
 
 
   }
