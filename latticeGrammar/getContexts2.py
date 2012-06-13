@@ -78,7 +78,7 @@ class inputFiles(object):
                 relContexts = list(Set(sum([self.words[i] for i in topNWords],[])).intersection(Set(topNCon)))
             
                 print attrP
-                wO = relContexts+topNCon+["null"]
+                wO = relContexts+relConSet+["null"]
                 print "attributes:"+";".join(wO)
                 print objP
                 print "objects:"+";".join(topNWords)                 
