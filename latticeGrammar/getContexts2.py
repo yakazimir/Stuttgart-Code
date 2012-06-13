@@ -9,10 +9,15 @@ from sets import Set
 class inputFiles(object): 
     
     def __init__(self,s,l): 
+        #CONTEXTS AND COUNTS
         self.contexts = {}
+        ##WORDS AND CONTEXTS
         self.words = {}
+        ##CONTEXT INDEX -- VALUES
         self.logicIndex = {}
+        ##CONTEXTS OF WORDS IN TRAINING
         self.wordContexts = {}
+        ###COUNTS OF WORDS
         self.wordCounts = {}
         self.sentence = self.__privateP(s)
         self.logic = self.__privateP(l)
@@ -57,17 +62,39 @@ class inputFiles(object):
            
         if n == None:            
             print attrP
-            wO = self.contexts.keys()+self.logicConcepts
-            #print "attributes:"+";".join(self.contexts.keys())
+            wO = self.contexts.keys()+self.logicConcepts+["null"]
             print "attributes:"+";".join(wO)
             print objP
             print "objects:"+";".join(self.words.keys())
             print objAttrP
             for (i,j) in self.words.items(): 
-                wO2 = j+self.wordConcepts(i)
+                wO2 = j+self.wordConcepts(i)+["null"]
                 print i+"--"+";".join(wO2)
-        else: 
-            pass 
+        else:
+            try: 
+                topNCon = [i[1] for i in self.sortContexts()[:n[1]]]
+                topNWords = [i[1] for i in self.sortWords()[:n[0]]]
+                relConSet = list(Set(sum([self.wordConcepts(i) for i in topNWords],[])))
+                relContexts = list(Set(sum([self.words[i] for i in topNWords],[])).intersection(Set(topNCon)))
+            
+                print attrP
+                wO = relContexts+topNCon+["null"]
+                print "attributes:"+";".join(wO)
+                print objP
+                print "objects:"+";".join(topNWords)                 
+            
+
+
+
+                #print relConSet
+                #print relContexts
+            
+            except: print "input must be tuple (#Words,#Contexts)"
+
+
+            # print topNCon
+            # print "##########"
+            # print topNWords
          
 
     def wordConcepts(self, n=None):
@@ -88,3 +115,4 @@ file1 = inputFiles('sSentences.txt', 'contexts.txt')
 
 
 
+#print "attributes:"+";".join(self.contexts.keys())
