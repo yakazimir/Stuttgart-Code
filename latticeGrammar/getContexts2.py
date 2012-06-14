@@ -82,7 +82,10 @@ class inputFiles(object):
                 print "attributes:"+";".join(wO)
                 print objP
                 print "objects:"+";".join(topNWords)                 
-            
+                print objAttrP
+                for w in topNWords: 
+                    wO2 = self.words[w]+self.wordConcepts(w)+["null"]
+                    print w+"--"+";".join(wO2)
 
 
 
