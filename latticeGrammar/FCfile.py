@@ -66,7 +66,8 @@ class inputFiles(object):
         def on(x,y):
             a = Set(self.words[x]).intersection(Set(y))
             if a != Set() and len(list(a))>1 : 
-                return (x,list(a))
+                #print list(a)
+                return (x,list(a)+self.wordConcepts(x))
             else: return (None,None)
 
         if n == None:            
@@ -80,24 +81,25 @@ class inputFiles(object):
                 wO2 = j+self.wordConcepts(i)+["null"]
                 print i+"--"+";".join(wO2)
         else:
-            try:
-                topNCon = [i[1] for i in self.sortContexts()[:n[1]] if i[0] > 3]
-                topNWords = [i[1] for i in self.sortWords()[:n[0]] if i[0] > 2]
-                relConSet = list(Set(sum([self.wordConcepts(i) for i in topNWords],[])))
-                relContexts = list(Set(sum([self.words[i] for i in topNWords],[])).intersection(Set(topNCon))) 
-                print attrP
-                wO = relContexts+relConSet+["null"]
-                print "attributes:"+";".join(wO)
-                print objP
-                filt = dict((key,value) for (key,value) in {on(i,relContexts)[0]:on(i,relContexts)[1] for 
-                                                            i in topNWords}.iteritems() if key != None)
-                print "objects:"+";".join(filt)   
-                print objAttrP
-                for (w,j) in filt.iteritems():
-                    print w+"--"+";".join(j)
-                #print len(filt.keys())
-                #print len(relContexts)
-            except: print "input must be tuple (#Words,#Contexts)"         
+            #try:
+            topNCon = [i[1] for i in self.sortContexts()[:n[1]] if i[0] > 3]
+            topNWords = [i[1] for i in self.sortWords()[:n[0]] if i[0] > 2]
+            relConSet = list(Set(sum([self.wordConcepts(i) for i in topNWords],[])))
+            relContexts = list(Set(sum([self.words[i] for i in topNWords],[])).intersection(Set(topNCon))) 
+            filt = dict((key,value) for (key,value) in {on(i,relContexts+relConSet)[0]:on(i,relContexts+relConSet)[1] for 
+                                                        i in topNWords}.iteritems() if key != None)
+            print attrP
+            wO = list(Set(sum([i for i in filt.values()],[])))+relConSet+["null"]
+            #wO = list(Set(sum(filt.values())))+relConSet+["null"]
+            print "attributes:"+";".join(wO)
+            print objP
+            
+            print "objects:"+";".join(filt)   
+            print objAttrP
+            for (w,j) in filt.iteritems():
+                print w+"--"+";".join(j)
+      
+            #except: print "input must be tuple (#Words,#Contexts)"         
             
            
     def wordConcepts(self, n=None):

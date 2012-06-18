@@ -20,11 +20,8 @@ object FC {
   //var file = Source.fromFile("synConcepts.txt").getLines.toList
   //testing altering
   //var file = Source.fromFile("altering.txt").getLines.toList
-  
   var file = Source.fromFile("make.txt").getLines.toList
-
   var conceptList = new HashSet[Concept]
-
 
   def time(f: => Unit) = { 
     val s = System.currentTimeMillis; f 
@@ -62,7 +59,9 @@ object FC {
     private def projectConcepts(B : List[Int]) {
 
       var U : List[Int] = List(); var Z : List[String] = List()
-      println("INTENT:"+i+" "+B); i += 1
+      //for printing
+      //println("INTENT:"+i+" "+B); 
+      i += 1
 
       if (B != List()) {
 	breakable {       
@@ -77,9 +76,10 @@ object FC {
 	}
       }
       else Z = obj.objectVals.keys.toList.map(s => obj.objectVals(s))
-      println("\tConcept: "+(Z,B))
-      conceptList += ConceptTuple(Z,B)
-      
+      //for printing
+      //println("\tConcept: "+(Z,B))
+      println("\tConcept: "+i+": "+Z)
+      //conceptList += ConceptTuple(Z,B)      
     }
 
     def generate_from(F : List[Int], y : Int) { 
@@ -149,7 +149,6 @@ object FC {
 	    }
 	}
 	case _ => {
-
 	  var s : Array[String] = line.split("--")
 	  objectVals += (objectNum.indexOf(s(0)) -> s(0))
 
@@ -170,87 +169,98 @@ object FC {
     for (i <- xM) rowVals += (xM.indexOf(i) -> i) 
   }
 
-
-  class filter(h : HashSet[Concept], o : objectAndAttrs) { 
-
-    //eventually make it more incrememntal
-
-    var rev : Map[String,Int] = o.objectVals map {_.swap}
-
-    def powerSet[A](s: Set[A]) =
-      s.foldLeft(Set(Set.empty[A])) {
-	(set, element) =>
-           set union (set map (_ + element))
-    }
-
-    for (i <- h) i match { 
-      
-      case x : ConceptTuple => {
-
-	println(x)
-
-	var s : Set[Int] = Set()
-	var pCount : Float = 0 
-	var z = powerSet(x.e.toSet) 
-	//println(z)
-	//println(x.i)
-
-	for (valu <-z) {
-
-	  if (valu == Set()) { 
-	    if (x.i == List()) pCount += 1
-	    else {}
-
-	  }
-
-	  else { 
-	    
-	    for (obj <- valu) {
-
-	      var oo = o.objectAttrs(rev(obj)).toSet
-
-	      if (s == Set()) s = oo 
-	      else (s = s.intersect(oo))
-	      
-	      //print("\t"+oo)
-	      
-	    }
-	    //println(" intersection: "+s)
-	    //println("\n")
-	    
-	    
-
-	    if (s == x.i.toSet) pCount += 1 
-	    else {} 
-	    s = Set()
-	  }
-	}
-	
-	// try { println(pCount/z.size.toFloat) }
-	// catch { case e : ArithmeticException => None }
-
-	println("\t Score: "+pCount/z.size.toFloat)
-	pCount = 0
-      }
-      case _ => None 
-
-    }
-
-  }
-
   def main(args : Array[String]) { 
 
     var objects = new objectAndAttrs(file)
     val n = (objects.rows.keys.toList.length)-1
     val totalAttributes = (objects.rows.keys.toSet)   
     var ints = new intents(objects, n, totalAttributes)
-    println(objects.rowVals(15))
     var timeFun : Double = time(ints.generate_from(List(),0)); println(timeFun/1000.0)
-    //println(objects.
-
-
-    //var fil = new filter(conceptList, objects)
-
 
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// class filter(h : HashSet[Concept], o : objectAndAttrs) { 
+
+//     //eventually make it more incrememntal
+
+//     var rev : Map[String,Int] = o.objectVals map {_.swap}
+
+//     def powerSet[A](s: Set[A]) =
+//       s.foldLeft(Set(Set.empty[A])) {
+// 	(set, element) =>
+//            set union (set map (_ + element))
+//     }
+
+//     for (i <- h) i match { 
+      
+//       case x : ConceptTuple => {
+
+// 	println(x)
+
+// 	var s : Set[Int] = Set()
+// 	var pCount : Float = 0 
+// 	var z = powerSet(x.e.toSet) 
+// 	//println(z)
+// 	//println(x.i)
+
+// 	for (valu <-z) {
+
+// 	  if (valu == Set()) { 
+// 	    if (x.i == List()) pCount += 1
+// 	    else {}
+
+// 	  }
+
+// 	  else { 
+	    
+// 	    for (obj <- valu) {
+
+// 	      var oo = o.objectAttrs(rev(obj)).toSet
+
+// 	      if (s == Set()) s = oo 
+// 	      else (s = s.intersect(oo))
+	      
+// 	      //print("\t"+oo)
+	      
+// 	    }
+// 	    //println(" intersection: "+s)
+// 	    //println("\n")
+	    
+	    
+
+// 	    if (s == x.i.toSet) pCount += 1 
+// 	    else {} 
+// 	    s = Set()
+// 	  }
+// 	}
+	
+// 	// try { println(pCount/z.size.toFloat) }
+// 	// catch { case e : ArithmeticException => None }
+
+// 	println("\t Score: "+pCount/z.size.toFloat)
+// 	pCount = 0
+//       }
+//       case _ => None 
+
+//     }
+
+//   }
