@@ -19,8 +19,10 @@ object FC {
   //var file = Source.fromFile("newTest.txt").getLines.toList
   //var file = Source.fromFile("synConcepts.txt").getLines.toList
   //testing altering
-  var file = Source.fromFile("altering.txt").getLines.toList
+  //var file = Source.fromFile("altering.txt").getLines.toList
   
+  var file = Source.fromFile("make.txt").getLines.toList
+
   var conceptList = new HashSet[Concept]
 
 
@@ -242,10 +244,12 @@ object FC {
     val n = (objects.rows.keys.toList.length)-1
     val totalAttributes = (objects.rows.keys.toSet)   
     var ints = new intents(objects, n, totalAttributes)
-
+    println(objects.rowVals(15))
     var timeFun : Double = time(ints.generate_from(List(),0)); println(timeFun/1000.0)
-    
-    var fil = new filter(conceptList, objects)
+    //println(objects.
+
+
+    //var fil = new filter(conceptList, objects)
 
 
   }
