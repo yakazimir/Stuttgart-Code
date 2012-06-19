@@ -86,9 +86,6 @@ class inputFiles(object):
                 for w in topNWords: 
                     wO2 = self.words[w]+self.wordConcepts(w)+["null"]
                     print w+"--"+";".join(wO2)
-
-
-
                 #print relConSet
                 #print relContexts
             
@@ -108,8 +105,7 @@ class inputFiles(object):
                 print word+": ",; print list(cStuff)
         else: 
             try: 
-                cStuff = Set(sum([self.logicIndex[i] 
-                                  for i in self.wordContexts[n]],[]))
+                cStuff = Set(sum([self.logicIndex[i] for i in self.wordContexts[n]],[]))
                 return list(cStuff)
             except: return "word not found"
                 

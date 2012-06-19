@@ -20,7 +20,9 @@ object FC {
   //var file = Source.fromFile("synConcepts.txt").getLines.toList
   //testing altering
   //var file = Source.fromFile("altering.txt").getLines.toList
-  var file = Source.fromFile("make.txt").getLines.toList
+  //var file = Source.fromFile("make.txt").getLines.toList
+  var file = Source.fromFile("makeLarge.txt").getLines.toList
+
   var conceptList = new HashSet[Concept]
 
   def time(f: => Unit) = { 
