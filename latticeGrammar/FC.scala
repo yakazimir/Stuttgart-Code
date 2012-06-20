@@ -12,7 +12,6 @@ object FC {
   abstract class Concept
   case class ConceptTuple(e: List[String], i: List[Int]) extends Concept
   case class ConceptList(l : List[Concept]) extends Concept
-
   //standard test file
   //var file = Source.fromFile("newOne.txt").getLines.toList
   //var file = Source.fromFile("exampleObjects.txt").getLines.toList
@@ -20,20 +19,19 @@ object FC {
   //var file = Source.fromFile("synConcepts.txt").getLines.toList
   //testing altering
   //var file = Source.fromFile("altering.txt").getLines.toList
-  //var file = Source.fromFile("make.txt").getLines.toList
-  var file = Source.fromFile("makeLarge.txt").getLines.toList
+  //var file = Source.fromFile("makeLarge.txt").getLines.toList
+  //var file = Source.fromFile("largerTest.txt").getLines.toList
+  var file = Source.fromFile("testing.txt").getLines.toList
+  //var file = Source.fromFile("testing1.txt").getLines.toList
 
   var conceptList = new HashSet[Concept]
-
   def time(f: => Unit) = { 
     val s = System.currentTimeMillis; f 
     System.currentTimeMillis - s
   }
 
   def compute_closure(B : List[Int], y : Int, n : Int, ob : objectAndAttrs) : List[Int] = { 
-
     val D = Array.fill[Int](n+1)(1)
-
     for (i <- ob.rows(y)) { 
       var m : Boolean = true 
       breakable { 
@@ -56,10 +54,8 @@ object FC {
   }
 
   class intents(obj : objectAndAttrs, n : Int, attr : Set[Int]) {
-
     var i : Int = 1
     private def projectConcepts(B : List[Int]) {
-
       var U : List[Int] = List(); var Z : List[String] = List()
       //for printing
       //println("INTENT:"+i+" "+B); 
@@ -81,14 +77,13 @@ object FC {
       //for printing
       //println("\tConcept: "+(Z,B))
       println("\tConcept: "+i+": "+Z)
+      //for storing later
       //conceptList += ConceptTuple(Z,B)      
     }
 
     def generate_from(F : List[Int], y : Int) { 
-
       var B = F ; projectConcepts(B) 
-      if (B.toSet == attr || y > n) { return }
-      
+      if (B.toSet == attr || y > n) { return } 
       for (j <- (y to n)) {
 	B.contains(j) match {	   
 	  case false => { 
@@ -96,7 +91,6 @@ object FC {
 	    var skip = false  	    
 	    breakable {	 
 	      for (k <- (0 to j-1)) { 
-		
 		if (!(D.contains(k) && B.contains(k)) && 
 		    (D.contains(k) || B.contains(k))) {
 		      skip = true; break
@@ -114,11 +108,11 @@ object FC {
       }
     } 
   }
-
   class objectAndAttrs(f : List[String]) { 
-
     var rows : Map[Int,List[Int]] = Map(); var rowVals : Map[Int,String] = Map()
-    var objectVals : Map[Int,String] = Map()       
+    var objectVals : Map[Int,String] = Map()
+    var objectFreq : Map[String,Double] = Map()
+    var objectSemFreq : Map[String,Map[String, Double]] = Map()
     var context = new scala.collection.mutable.ListBuffer[(Int,Int)]
     private var xM : List[String] = List(); private var objectNum : List[String] = List()
     var objectAttrs : Map[Int,List[Int]] = Map() 
@@ -152,14 +146,33 @@ object FC {
 	}
 	case _ => {
 	  var s : Array[String] = line.split("--")
-	  objectVals += (objectNum.indexOf(s(0)) -> s(0))
-
+	  var wordName : String = s(0).split('.')(0)
+	  var freq : Double = s(0).split('.')(1).toDouble
+	  try { 
+	    objectVals += (objectNum.indexOf(wordName) -> wordName)
+	    objectFreq += (wordName -> freq)
+	  } catch { 
+	      case e : ArrayIndexOutOfBoundsException => 
+		println("error with format, line: "+s(0)); break
+	  }
 	  try {
-	    for (attr <- s(1).split(";")){
-	      fillMaps(rows, xM.indexOf(attr), objectNum.indexOf(s(0)))    
-	      fillMaps(objectAttrs, objectNum.indexOf(s(0)), xM.indexOf(attr))
-	      context += ((objectNum.indexOf(s(0)),xM.indexOf(attr)))
-	    }	      
+	    var attributeSide : Array[String] = s(1).split("<<")(0).split(";") 
+	    var semValSide : Array[String] = s(1).split("<<")(1).split(";")
+	    for (attr <- attributeSide) {
+	      fillMaps(rows, xM.indexOf(attr), objectNum.indexOf(wordName))    
+	      fillMaps(objectAttrs, objectNum.indexOf(wordName), xM.indexOf(attr))
+	      context += ((objectNum.indexOf(wordName),xM.indexOf(attr)))
+	    }	
+	    for (sems <- semValSide){
+	      var semV : String = sems.split("=")(0)
+	      var cV : Double = sems.split("=")(1).toDouble
+	      objectSemFreq.contains(wordName) match {
+		case false => 
+		  objectSemFreq += (wordName -> Map(semV -> cV))
+		case _ => 
+		  objectSemFreq(wordName) += (semV -> cV) 
+	      }
+	    }      
 	  } catch { 
 	      case e : ArrayIndexOutOfBoundsException => 
 	      println("line missing attributes: "+s(0)); break 
@@ -177,7 +190,10 @@ object FC {
     val n = (objects.rows.keys.toList.length)-1
     val totalAttributes = (objects.rows.keys.toSet)   
     var ints = new intents(objects, n, totalAttributes)
+    //println(objects.objectVals)
     var timeFun : Double = time(ints.generate_from(List(),0)); println(timeFun/1000.0)
+
+    //println(objects.objectSemFreq)
 
   }
 }

@@ -1,13 +1,11 @@
 import re 
 from sets import Set
-
 #########################
 # FOR PRODUCING FC FILE #
 # JUNE 2012             #
 #########################
 
-class inputFiles(object): 
-    
+class inputFiles(object):     
     def __init__(self,s,l): 
         #CONTEXTS AND COUNTS
         self.contexts = {}
@@ -24,6 +22,10 @@ class inputFiles(object):
         self.numOfContexts = len(self.contexts.keys())
         self.numOfWords = len(self.words.keys())
         self.logicConcepts = list(Set(sum(self.logicIndex.values(),[])))
+    def wordDistr(self, x): 
+        try: print self.wordCounts[x]
+        except KeyError: print "word not in corpus"
+        except : print "error in input"
     def sortSemCounts(self,x): 
         return sorted([(v,k) for (k,v) in x.items()], reverse=True)         
     def sortContexts(self): 
@@ -59,7 +61,6 @@ class inputFiles(object):
         else:          
             lO = Set(re.sub('\(|\)|\,',' ',' '.join(x[1:])).split())
             self.logicIndex[x[0]] = list(lO)
-
         return (' '.join(z), x[0])
     def makeFile(self, n=None):
         attrP = "############\n##ATTRIBUTES\n############"
@@ -81,7 +82,8 @@ class inputFiles(object):
             print "objects:"+";".join(self.words.keys())
             print objAttrP
             for (i,j) in self.words.items(): 
-                wO2 = j+self.wordConcepts(i)+["null"]
+                ##STILL HAS SEMANTIC INFO
+                wO2 = j+self.wordConcepts(i) #+["null"]
                 print i+"--"+";".join(wO2)
         else:
             #try:
@@ -98,9 +100,13 @@ class inputFiles(object):
             print "objects:"+";".join(filt)   
             print objAttrP
             for (w,j) in filt.iteritems():
-                print w+"--"+";".join(j)
+                tP = ['='.join(i) for i in self.wordConcepts(w)]
+                print w+"."+str(self.wordCounts[w])+"--"+";".join(j) #+"<<"+';'.join(tP)
+                
 
+            ##FOR PRINTING NUMBER OF WORDS
             #print len(filt.keys())
+            ###FOR PRINTING NUMBER OF CONTEXTS
             #print len(wO)
             #except: print "input must be tuple (#Words,#Contexts)"                    
     def wordConcepts(self, n=None):
@@ -111,16 +117,16 @@ class inputFiles(object):
         else: 
             try: 
                 cStuff = sum([self.logicIndex[i] for i in self.wordContexts[n]],[])
-                sCount = {i:cStuff.count(i) for i in Set(cStuff)}
+                sCount = {str(cStuff.count(i)):i for i in Set(cStuff)}
                 return self.sortSemCounts(sCount)
             except: return "word not found"
                 
 
 file1 = inputFiles('sSentences.txt', 'contexts.txt')
-file1.makeFile((200,1000))
+file1.makeFile((500,2000))
 
-print len(file1.words)
-print len(file1.contexts)
+#print len(file1.words)
+#print len(file1.contexts)
 
 
 
