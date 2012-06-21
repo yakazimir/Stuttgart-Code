@@ -49,6 +49,7 @@ class inputFiles(object):
                     self.contexts[con] = self.contexts.setdefault(con,0)+1
                     self.words.setdefault(z[i],[con]).append(con)
                     self.wordCounts[z[i]] = self.wordCounts.setdefault(z[i],0)+1
+                    ##CHECK THIS REPEATS IN WORD CONTEXTS
                     self.wordContexts.setdefault(z[i],[x[0]]).append(x[0])
             else: 
                 jk = {' '.join(z[start:end]):(start,end) for start in range(len(z)) for end in range(start+1,len(z)+1)}
@@ -103,7 +104,6 @@ class inputFiles(object):
                 tP = ['='.join(i) for i in self.wordConcepts(w)]
                 print w+"."+str(self.wordCounts[w])+"--"+";".join(j) #+"<<"+';'.join(tP)
                 
-
             ##FOR PRINTING NUMBER OF WORDS
             #print len(filt.keys())
             ###FOR PRINTING NUMBER OF CONTEXTS
