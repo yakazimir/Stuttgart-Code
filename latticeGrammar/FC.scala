@@ -56,16 +56,20 @@ object FC {
 
     private def semP(l : List[String], u : List[Int]){
       var totalNum = l.map(x=>obj.objectFreq(x)).foldRight(0)(_+_)
-      println("\t\tTotal Number Word(s) Seen: "+totalNum)
+      println("\t\tTotal Times Word(s) Seen: "+totalNum)
       var b = l.map(x=>obj.objectSemFreq(x))
+      var semN : Int = b.map(x=>x.values.map(y=>y.toInt).foldRight(0)(_+_)).foldRight(0)(_+_)
       if (l.length != obj.objectVals.keySet.size){ 
 	try { 
 	  var l : Map[String,Double] = b.head
-	  for (i<- b.takeRight(b.length-1)) {
+	  for (i <- b.takeRight(b.length-1)) {
 	    l = l ++ i.map { case (k,v) => k -> (v + l.getOrElse(k,0.0)) }
 	  }
-	  for ((i,j) <- l.toList.sortBy(_._2).reverse.toMap) {
-	    println("\t\t"+i+": "+(j/totalNum.toDouble))   
+	  //for ((i,j) <- l.toList.sortBy(_._2).reverse.toMap) {
+	  //println(l.toList.sortBy(_._2)) this is before division
+	  for ((i,j) <- l) {
+	    //println("\t\t"+i+": "+(j/totalNum.toDouble))   
+	    println("\t\t"+i+": "+(j/semN.toDouble))   
 	  }
 	} catch { 
 	    case e : NoSuchElementException => 
