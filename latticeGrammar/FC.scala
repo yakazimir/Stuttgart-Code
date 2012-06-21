@@ -56,22 +56,24 @@ object FC {
 
     private def semP(l : List[String], u : List[Int]){
       var totalNum = l.map(x=>obj.objectFreq(x)).foldRight(0)(_+_)
-      //println("\t\tTotalNumber: "+totalNum.foldRight(0)(_+_))
-      println("\t\tTotalNumber: "+totalNum)
-
+      println("\t\tTotal Number Word(s) Seen: "+totalNum)
       var b = l.map(x=>obj.objectSemFreq(x))
-      try { 
-	var l : Map[String,Double] = b.head
-	for (i<- b.takeRight(b.length-1)) {
-	  l = l ++ i.map { case (k,v) => k -> (v + l.getOrElse(k,0.0)) }
+      if (l.length != obj.objectVals.keySet.size){ 
+	try { 
+	  var l : Map[String,Double] = b.head
+	  for (i<- b.takeRight(b.length-1)) {
+	    l = l ++ i.map { case (k,v) => k -> (v + l.getOrElse(k,0.0)) }
+	  }
+	  for ((i,j) <- l.toList.sortBy(_._2).reverse.toMap) {
+	    println("\t\t"+i+": "+(j/totalNum.toDouble))   
+	  }
+	} catch { 
+	    case e : NoSuchElementException => 
+	      if (b == List()) {println("\t\tbottom of lattice")}
+	    case _ => println("issue in print back"); break		   
 	}
-	for ((i,j) <- l) println("\t\t"+i+": "+(j/totalNum.toDouble))   
- 
-      } catch { 
-	  case e : NoSuchElementException => 
-	    if (b == List()) {println("\t\tbottom of lattice")}
-	  case _ => println("issue in print back"); break		   
       }
+      else println ("\t\tTop of lattice")
     }
 
     private def projectConcepts(B : List[Int]) {
@@ -94,6 +96,7 @@ object FC {
       else Z = obj.objectVals.keys.toList.map(s => obj.objectVals(s))
       //for printing
       //println("\tConcept: "+(Z,B))
+      //println(Z.length)
       println("\tConcept "+i+": "+Z)
       semP(Z, U)
       //for storing later
@@ -242,43 +245,30 @@ object FC {
 // 	(set, element) =>
 //            set union (set map (_ + element))
 //     }
-
-//     for (i <- h) i match { 
-      
+//     for (i <- h) i match {      
 //       case x : ConceptTuple => {
-
 // 	println(x)
-
 // 	var s : Set[Int] = Set()
 // 	var pCount : Float = 0 
 // 	var z = powerSet(x.e.toSet) 
 // 	//println(z)
 // 	//println(x.i)
-
 // 	for (valu <-z) {
 
 // 	  if (valu == Set()) { 
 // 	    if (x.i == List()) pCount += 1
 // 	    else {}
-
 // 	  }
-
 // 	  else { 
 	    
 // 	    for (obj <- valu) {
-
 // 	      var oo = o.objectAttrs(rev(obj)).toSet
-
 // 	      if (s == Set()) s = oo 
-// 	      else (s = s.intersect(oo))
-	      
-// 	      //print("\t"+oo)
-	      
+// 	      else (s = s.intersect(oo))	    
+// 	      //print("\t"+oo)	      
 // 	    }
 // 	    //println(" intersection: "+s)
-// 	    //println("\n")
-	    
-	    
+// 	    //println("\n")	    	    
 
 // 	    if (s == x.i.toSet) pCount += 1 
 // 	    else {} 
