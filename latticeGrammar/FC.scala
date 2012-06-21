@@ -26,8 +26,7 @@ object FC {
 
   var conceptList = new HashSet[Concept]
   def time(f: => Unit) = { 
-    val s = System.currentTimeMillis; f 
-    System.currentTimeMillis - s
+    val s = System.currentTimeMillis; f; System.currentTimeMillis - s
   }
 
   def compute_closure(B : List[Int], y : Int, n : Int, ob : objectAndAttrs) : List[Int] = { 
@@ -52,15 +51,34 @@ object FC {
     }
     return(D.zipWithIndex.filter(s => s._1 == 1).unzip._2.toList)
   }
-
   class intents(obj : objectAndAttrs, n : Int, attr : Set[Int]) {
     var i : Int = 1
+
+    private def semP(l : List[String], u : List[Int]){
+      var totalNum = l.map(x=>obj.objectFreq(x)).foldRight(0)(_+_)
+      //println("\t\tTotalNumber: "+totalNum.foldRight(0)(_+_))
+      println("\t\tTotalNumber: "+totalNum)
+
+      var b = l.map(x=>obj.objectSemFreq(x))
+      try { 
+	var l : Map[String,Double] = b.head
+	for (i<- b.takeRight(b.length-1)) {
+	  l = l ++ i.map { case (k,v) => k -> (v + l.getOrElse(k,0.0)) }
+	}
+	for ((i,j) <- l) println("\t\t"+i+": "+(j/totalNum.toDouble))   
+ 
+      } catch { 
+	  case e : NoSuchElementException => 
+	    if (b == List()) {println("\t\tbottom of lattice")}
+	  case _ => println("issue in print back"); break		   
+      }
+    }
+
     private def projectConcepts(B : List[Int]) {
       var U : List[Int] = List(); var Z : List[String] = List()
       //for printing
       //println("INTENT:"+i+" "+B); 
       i += 1
-
       if (B != List()) {
 	breakable {       
 	  for (item <- B) {
@@ -76,7 +94,8 @@ object FC {
       else Z = obj.objectVals.keys.toList.map(s => obj.objectVals(s))
       //for printing
       //println("\tConcept: "+(Z,B))
-      println("\tConcept: "+i+": "+Z)
+      println("\tConcept "+i+": "+Z)
+      semP(Z, U)
       //for storing later
       //conceptList += ConceptTuple(Z,B)      
     }
@@ -111,14 +130,12 @@ object FC {
   class objectAndAttrs(f : List[String]) { 
     var rows : Map[Int,List[Int]] = Map(); var rowVals : Map[Int,String] = Map()
     var objectVals : Map[Int,String] = Map()
-    var objectFreq : Map[String,Double] = Map()
+    var objectFreq : Map[String,Int] = Map()
     var objectSemFreq : Map[String,Map[String, Double]] = Map()
     var context = new scala.collection.mutable.ListBuffer[(Int,Int)]
     private var xM : List[String] = List(); private var objectNum : List[String] = List()
-    var objectAttrs : Map[Int,List[Int]] = Map() 
-  
+    var objectAttrs : Map[Int,List[Int]] = Map()  
     private def computeVals(line : String) { 
-
       def fillMaps(map : Map[Int,List[Int]], key : Int, val1 : Int) {
 	map.contains(key) match { 
 	  case true => map(key) = map(key)++List(val1) 
@@ -147,7 +164,7 @@ object FC {
 	case _ => {
 	  var s : Array[String] = line.split("--")
 	  var wordName : String = s(0).split('.')(0)
-	  var freq : Double = s(0).split('.')(1).toDouble
+	  var freq : Int = s(0).split('.')(1).toInt
 	  try { 
 	    objectVals += (objectNum.indexOf(wordName) -> wordName)
 	    objectFreq += (wordName -> freq)
@@ -185,14 +202,12 @@ object FC {
   }
 
   def main(args : Array[String]) { 
-
     var objects = new objectAndAttrs(file)
     val n = (objects.rows.keys.toList.length)-1
     val totalAttributes = (objects.rows.keys.toSet)   
     var ints = new intents(objects, n, totalAttributes)
     //println(objects.objectVals)
     var timeFun : Double = time(ints.generate_from(List(),0)); println(timeFun/1000.0)
-
     //println(objects.objectSemFreq)
 
   }
