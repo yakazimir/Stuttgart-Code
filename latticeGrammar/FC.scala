@@ -21,7 +21,8 @@ object FC {
   //var file = Source.fromFile("altering.txt").getLines.toList
   //var file = Source.fromFile("makeLarge.txt").getLines.toList
   //var file = Source.fromFile("largerTest.txt").getLines.toList
-  var file = Source.fromFile("testing.txt").getLines.toList
+  //var file = Source.fromFile("testing.txt").getLines.toList
+  var file = Source.fromFile("testing2.txt").getLines.toList
   //var file = Source.fromFile("testing1.txt").getLines.toList
 
   var conceptList = new HashSet[Concept]
@@ -73,7 +74,7 @@ object FC {
 	  }
 	} catch { 
 	    case e : NoSuchElementException => 
-	      if (b == List()) {println("\t\tbottom of lattice")}
+	      if (b == List()) {println("\t\tBottom of lattice")}
 	    case _ => println("issue in print back"); break		   
 	}
       }

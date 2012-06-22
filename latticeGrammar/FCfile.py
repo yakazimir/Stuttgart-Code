@@ -102,7 +102,7 @@ class inputFiles(object):
             print objAttrP
             for (w,j) in filt.iteritems():
                 tP = ['='.join(i) for i in self.wordConcepts(w)]
-                print w+"."+str(self.wordCounts[w])+"--"+";".join(j) #+"<<"+';'.join(tP)
+                print w+"."+str(self.wordCounts[w])+"--"+";".join(j)+"<<"+';'.join(tP)
                 
             ##FOR PRINTING NUMBER OF WORDS
             #print len(filt.keys())
@@ -116,7 +116,7 @@ class inputFiles(object):
                 print word+": ",; print list(cStuff)
         else: 
             try: 
-                cStuff = sum([self.logicIndex[i] for i in self.wordContexts[n]],[])
+                cStuff = sum([self.logicIndex[i] for i in Set(self.wordContexts[n])],[])
                 sCount = {str(cStuff.count(i)):i for i in Set(cStuff)}
                 return self.sortSemCounts(sCount)
             except: return "word not found"
