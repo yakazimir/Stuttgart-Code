@@ -71,7 +71,6 @@ class inputFiles(object):
         def on(x,y):
             a = Set(self.words[x]).intersection(Set(y))
             if a != Set() and len(list(a))>1 : 
-                #print list(a)
                 #return (x,list(a)+self.wordConcepts(x))
                 return (x,list(a))
             else: return (None,None)
@@ -87,28 +86,27 @@ class inputFiles(object):
                 wO2 = j+self.wordConcepts(i) #+["null"]
                 print i+"--"+";".join(wO2)
         else:
-            #try:
-            topNCon = [i[1] for i in self.sortContexts()[:n[1]] if i[0] > 2]
-            topNWords = [i[1] for i in self.sortWords()[:n[0]] if i[0] > 10]
-            #relConSet = list(Set(sum([self.wordConcepts(i) for i in topNWords],[])))
-            relContexts = list(Set(sum([self.words[i] for i in topNWords],[])).intersection(Set(topNCon))) 
-            filt = dict((key,value) for (key,value) in {on(i,relContexts)[0]:on(i,relContexts)[1] for 
+            try:
+                topNCon = [i[1] for i in self.sortContexts()[:n[1]] if i[0] > 2]
+                topNWords = [i[1] for i in self.sortWords()[:n[0]] if i[0] > 10]
+                relContexts = list(Set(sum([self.words[i] for i in topNWords],[])).intersection(Set(topNCon))) 
+                filt = dict((key,value) for (key,value) in {on(i,relContexts)[0]:on(i,relContexts)[1] for 
                                                         i in topNWords}.iteritems() if key != None)
-            print attrP
-            wO = list(Set(sum([i for i in filt.values()],[]))) #+relConSet+["null"]
-            print "attributes:"+";".join(wO)
-            print objP     
-            print "objects:"+";".join(filt)   
-            print objAttrP
-            for (w,j) in filt.iteritems():
-                tP = ['='.join(z) for z in self.wordConcepts(w)]
-                print w+"."+str(self.wordCounts[w])+"--"+";".join(j)+"<<"+re.sub('\n','',';'.join(tP))
+                print attrP
+                wO = list(Set(sum([i for i in filt.values()],[]))) #+relConSet+["null"]
+                print "attributes:"+";".join(wO)
+                print objP     
+                print "objects:"+";".join(filt)   
+                print objAttrP
+                for (w,j) in filt.iteritems():
+                    tP = ['='.join(z) for z in self.wordConcepts(w)]
+                    print w+"."+str(self.wordCounts[w])+"--"+";".join(j)+"<<"+re.sub('\n','',';'.join(tP))
                 
             ##FOR PRINTING NUMBER OF WORDS
             #print len(filt.keys())
             ###FOR PRINTING NUMBER OF CONTEXTS
             #print len(wO)
-            #except: print "input must be tuple (#Words,#Contexts)"                    
+            except: print "input must be tuple (#Words,#Contexts)"                    
     def wordConcepts(self, n=None):
         if n == None: 
             for word in self.words.keys(): 
@@ -117,25 +115,24 @@ class inputFiles(object):
         else: 
             try: 
                 cStuff = sum([self.logicIndex[i] for i in Set(self.wordContexts[n])],[])
-                #print cStuff
-                #sCount = {str(cStuff.count(i)):i for i in cStuff}
-                #sCount = {i:str(cStuff.count(i)) for i  in cStuff}
                 sCount = [(i,str(cStuff.count(i))) for i in Set(cStuff)]
                 ##SORTED GIVING WEIRD RESULT
                 return sCount
                 #return self.sortSemCounts(sCount)
-                #return self.sortSemCounts(sCount)
             except: return "word not found"
                 
 
-file1 = inputFiles('sSentences.txt', 'contexts.txt')
-file1.makeFile((500,2000))
+def main(): 
+    file1 = inputFiles('sSentences.txt', 'contexts.txt')
+    file1.makeFile((500,2000))
+
+
+
+
+
 
 #print len(file1.words)
 #print len(file1.contexts)
-
-
-
 #file1.makeFile((150,500)) #make2.txt
 #PREVIOUS TESTING
 #file1.makeFile((150,500))#make2.txt
