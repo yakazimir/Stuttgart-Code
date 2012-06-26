@@ -22,7 +22,7 @@ object FC {
   //var file = Source.fromFile("makeLarge.txt").getLines.toList
   //var file = Source.fromFile("largerTest.txt").getLines.toList
   //var file = Source.fromFile("testing.txt").getLines.toList
-  var file = Source.fromFile("testing2.txt").getLines.toList
+  var file = Source.fromFile("testing3.txt").getLines.toList
   //var file = Source.fromFile("testing1.txt").getLines.toList
 
   var conceptList = new HashSet[Concept]

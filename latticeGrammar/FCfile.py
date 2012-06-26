@@ -101,8 +101,8 @@ class inputFiles(object):
             print "objects:"+";".join(filt)   
             print objAttrP
             for (w,j) in filt.iteritems():
-                tP = ['='.join(i) for i in self.wordConcepts(w)]
-                print w+"."+str(self.wordCounts[w])+"--"+";".join(j)+"<<"+';'.join(tP)
+                tP = ['='.join(z) for z in self.wordConcepts(w)]
+                print w+"."+str(self.wordCounts[w])+"--"+";".join(j)+"<<"+re.sub('\n','',';'.join(tP))
                 
             ##FOR PRINTING NUMBER OF WORDS
             #print len(filt.keys())
@@ -117,8 +117,14 @@ class inputFiles(object):
         else: 
             try: 
                 cStuff = sum([self.logicIndex[i] for i in Set(self.wordContexts[n])],[])
-                sCount = {str(cStuff.count(i)):i for i in Set(cStuff)}
-                return self.sortSemCounts(sCount)
+                #print cStuff
+                #sCount = {str(cStuff.count(i)):i for i in cStuff}
+                #sCount = {i:str(cStuff.count(i)) for i  in cStuff}
+                sCount = [(i,str(cStuff.count(i))) for i in Set(cStuff)]
+                ##SORTED GIVING WEIRD RESULT
+                return sCount
+                #return self.sortSemCounts(sCount)
+                #return self.sortSemCounts(sCount)
             except: return "word not found"
                 
 
