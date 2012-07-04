@@ -11,7 +11,6 @@
 (defn attr? [s] (re-match? #"^attributes:" s)) 
 (defn object? [s] (re-match? #"^objects:" s))
 (defn objectV? [s] (re-match? #"^\w+\-\-" s))
-
 (defn calcV[l]
   (defn extrE [p]
     (let [sl (split p #"--")
@@ -23,7 +22,6 @@
     (catch Exception e
       (prn "val format issue")
       (java.lang.System/exit 0))))
-
 (defn getAO [l pred]
   (try 
     (let [v (split (first (filter pred l))#":")
@@ -31,7 +29,6 @@
     (catch Exception e
       (prn "object/attr err")
       (java.lang.System/exit 0))))
-
 (defn compileGraph [atr objects objV]
   (println [atr objects objV])
   (let [v (map #(first (keys %)) objV)
@@ -41,7 +38,6 @@
                 (java.lang.System/exit 0))
       true (do (println v)))
   (println v)))
-
 (defn readF [f]
   (def x (line-seq (reader f)))
   (let [atr (getAO x attr?)
@@ -49,7 +45,6 @@
         objV (calcV (filter objectV? x))]
     (do
       (compileGraph atr objects objV))))
-
 (readF "example.txt")
 
 
