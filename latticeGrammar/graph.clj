@@ -2,11 +2,9 @@
 ;; FINDING NETWORK COMMUNITIES  ;;
 ;; KYLE RICHARDSON              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (use '[clojure.java.io :only (reader)])
 (use '[clojure.string :only (split)])
 ;(use '[java.lang.System :only (exit)])
-
 (defn re-match? [re s] (not (nil? (re-find re s))))
 (defn attr? [s] (re-match? #"^attributes:" s)) 
 (defn object? [s] (re-match? #"^objects:" s))
