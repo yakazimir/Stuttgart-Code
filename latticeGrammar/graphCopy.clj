@@ -4,6 +4,7 @@
 
 (use '[clojure.java.io :only (reader)])
 (use '[clojure.string :only (split)])
+(use '[clojure.set])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; READING INPUT FILE ;;
@@ -13,7 +14,8 @@
 (defn attr? [s] (re-match? #"^attributes:" s)) 
 (defn object? [s] (re-match? #"^objects:" s))
 (defn objectV? [s] (re-match? #"^\w+\-\-" s))
-(defn in? [seq elem] (some #(= elem %) seq))
+(defn symD [s1 s2]
+  (union (difference s1 s2) (difference s2 s1)))
 
 (defn calcV[l]
   (defn extrE [p]
@@ -35,8 +37,8 @@
       (prn "object/attr err")
       (java.lang.System/exit 0))))
 
-;sanity check, probably not necessary
 (defn doubleCheck [atr objects objV]
+  "Sanity check; probably not needed in the end"
   (let [v (map #(first (keys %)) objV)
         zw (map #(first (vals %)) objV)
         zi (reduce concat zw)       
@@ -44,8 +46,8 @@
                  (= (set zi) (set atr)))]
     (case cor
       false (do (prn "match issue")
-                (println [(set v) (set objects)])
-                (println [(set zi) (set atr)])
+                (prn (symD (set v) (set objects)))
+                (prn (symD (set zi) (set atr)))
                 (java.lang.System/exit 0))
       true ())))
 
@@ -66,20 +68,43 @@
         objectM (into {} objF)
         attributeM (buildRev objectM)]
     (doubleCheck atr objects objF)
-    [objectM attributeM]))
+    [atr objects objectM attributeM]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; FINDING MAXIMAL BICLIQUES ;;
+;;---------------------------;;
+
+(flush)
+(print "reading input file: ")
+
+(def graphD (time (readF "example.txt")))
+
+(defn computeMaxBI [graphs]
+  ;;this S also needs to be immutable 
+  (def S #{(for [i (last graphs)] (last i))})
+  (println S))
+ 
+
+
+(computeMaxBI graphD)
+
+;(println S)
+;(println (last graphD))
+;(println (nth graphD 2))
+;(def S #{(for [i (last graphD)] (last i))})
+
+
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; COMPUTING COMMUNITIES ;;
 ;------------------------;;
 
-(flush)
-(println "reading input file")
-(time (readF "example.txt"))
-(time (readF "synConcepts.txt"))
-
-
-
-
+;; (flush)
+;; (print "reading input file: ")
+;; (time (readF "example.txt"))
+;; (time (readF "synConcepts.txt"))
 
 ;(time (readF "synConcepts.txt"))
 
