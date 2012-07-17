@@ -5,7 +5,7 @@
 (use '[clojure.java.io :only (reader)])
 (use '[clojure.string :only (split)])
 (use '[clojure.set])
-;(use '[clojure.lang.PersistentQueue/EMPTY :as (PersistentQueue)])
+(import '[clojure.lang PersistentQueue])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; READING INPUT FILE ;;
@@ -16,7 +16,8 @@
 (defn object? [s] (re-match? #"^objects:" s))
 (defn objectV? [s] (re-match? #"^\w+\-\-" s))
 (defn symD [s1 s2]
-  (union (difference s1 s2) (difference s2 s1)))
+  (union (difference s1 s2)
+         (difference s2 s1)))
 
 (defn calcV[l]
   (defn extrE [p]
@@ -77,31 +78,63 @@
 
 (flush)
 (print "reading input file: ")
-
-(def graphD (time (readF "example.txt")))
+(def graphD (time (readF "synConcepts.txt")))
 
 (defn computeMaxBI [graphs]
-  (def S (ref (for [i (last graphs)] (set (last i)))))
-  (def Q
-    (ref (into clojure.lang.PersistentQueue/EMPTY @S)))
-  (println S)
-
-  ;;something about set here !!
-  ;(println #(first (list %)) @S)
+  (def S (ref (set (for [i (last graphs)]
+                     (set (last i))))))
+  (def Q (ref (into PersistentQueue/EMPTY @S)))
+  ;(while (not (empty? @Q)) 
+  ;(println "A"))
   
-  ;; (println (list @S))
-  ;; (dosync (alter S conj "this is a test"))
-  (println (peek @Q))
-  (println (peek (pop @Q))))
+
+  
+
+  )
+  
+  
+  
+  
+
+  
+  ;; (while (not (nil? (peek @Q)))
+  ;;   (println "a")
+    
+
+  ;;   )
+    
+
+    
+  ;; (println (empty? @Q))
+  ;; (println (nil? (peek @Q)))
+  
+  ;; (println S)
+  ;; (println (peek @Q))
+  ;; (println (peek (pop @Q)))
+
+  ;; (dosync (ref-set S #{"first","testing"}))
+  ;; (println S)
+  ;; (println (peek @Q))
+  ;; (println (peek (pop @Q)))
+
+
+
+
+;(println (not (nil? (peek @Q)))) 
   ;; (println @S))
  
 
 
-(computeMaxBI graphD)
+(time (computeMaxBI graphD))
+
+
+
+
+
+
 
   ;; (ref (-> clojure.lang.PersistentQueue/EMPTY
     ;;          (conj (doseq [i (list S)] i)))))
-  
              ;(conj (for [i (list S)] i)))))
 ;;this S also needs to be immutable 
 ;(println S)
@@ -110,6 +143,11 @@
 ;(def S #{(for [i (last graphD)] (last i))})
 
 
+  ;;something about set here !!
+  ;(println #(first (list %)) @S)
+  
+  ;; (println (list @S))
+  ;; (dosync (alter S conj "this is a test"))
 
 
 
