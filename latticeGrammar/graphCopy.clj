@@ -5,6 +5,7 @@
 (use '[clojure.java.io :only (reader)])
 (use '[clojure.string :only (split)])
 (use '[clojure.set])
+;(use '[clojure.lang.PersistentQueue/EMPTY :as (PersistentQueue)])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; READING INPUT FILE ;;
@@ -80,14 +81,29 @@
 (def graphD (time (readF "example.txt")))
 
 (defn computeMaxBI [graphs]
-  ;;this S also needs to be immutable 
-  (def S #{(for [i (last graphs)] (last i))})
-  (println S))
+  (def S (ref (for [i (last graphs)] (set (last i)))))
+  (def Q
+    (ref (into clojure.lang.PersistentQueue/EMPTY @S)))
+  (println S)
+
+  ;;something about set here !!
+  ;(println #(first (list %)) @S)
+  
+  ;; (println (list @S))
+  ;; (dosync (alter S conj "this is a test"))
+  (println (peek @Q))
+  (println (peek (pop @Q))))
+  ;; (println @S))
  
 
 
 (computeMaxBI graphD)
 
+  ;; (ref (-> clojure.lang.PersistentQueue/EMPTY
+    ;;          (conj (doseq [i (list S)] i)))))
+  
+             ;(conj (for [i (list S)] i)))))
+;;this S also needs to be immutable 
 ;(println S)
 ;(println (last graphD))
 ;(println (nth graphD 2))
