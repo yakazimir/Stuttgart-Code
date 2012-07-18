@@ -14,10 +14,10 @@
 (defn re-match? [re s] (not (nil? (re-find re s))))
 (defn attr? [s] (re-match? #"^attributes:" s)) 
 (defn object? [s] (re-match? #"^objects:" s))
-(defn objectV? [s] (re-match? #"^\w+\-\-" s))
-(defn symD [s1 s2]
-  (union (difference s1 s2)
-         (difference s2 s1)))
+;(defn objectV? [s] (re-match? #"^\w+\-\-" s))
+(defn objectV? [s] (re-match? #"^[\w+\s*]+\-\-" s))
+(defn symD [s1 s2] (union (difference s1 s2)
+                          (difference s2 s1)))
 
 (defn calcV[l]
   (defn extrE [p]
@@ -70,6 +70,7 @@
         objectM (into {} objF)
         attributeM (buildRev objectM)]
     (doubleCheck atr objects objF)
+    ;(println atr objects objectM attributeM)
     [atr objects objectM attributeM]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -78,33 +79,106 @@
 
 (flush)
 (print "reading input file: ")
-(def graphD (time (readF "synConcepts.txt")))
+;(def graphD (time (readF "synConcepts.txt")))
+;(def graphD (time (readF "example.txt")))
+(def graphD (time (readF "newcljtest.txt")))
+
+(defn outside [l t]
+  (defn gg [j]
+  (let [ma (nth graphD j)
+        i (map #(set (get ma %)) l)] i))
+  (case t "ext" (gg 3) "int" (gg 2)))
+
+(defn forS [t s]
+  (try 
+    (let [xV (outside s "ext") 
+          SN (set (map #(intersection % t) xV))] SN)
+    (catch Exception e
+      (println "caught"))))
 
 (defn computeMaxBI [graphs]
   (def S (ref (set (for [i (last graphs)]
-                     (set (last i))))))
+                    (set (last i))))))
   (def Q (ref (into PersistentQueue/EMPTY @S)))
-  ;(while (not (empty? @Q)) 
+  (defn CFun [] 
+    (let [top (peek @Q)
+          diff (difference
+                (set (first graphs))
+                (try (reduce intersection
+                             (outside top "int"))
+                     (catch Exception e ())))]
+      (do (dosync (alter Q pop))
+          (def D (difference (forS top diff) @S))
+          (dosync (alter S union D))
+          (doall (for [i D] (dosync (alter Q conj i)))))))
+  
+  (while (not (empty? @Q)) (CFun))
+  
+  (doall (for [i @S] (println i)))
+  (print "total bicliques found: ")
+  (println (count @S)))
+
+(time (computeMaxBI graphD))
+
+
+
+;)
+    ;; (for [i (difference (forS top diff) @S)] 
+    ;;   )
+    ;(println (difference (forS top diff) @S)) 
+    ;; (println @S)
+    ;; (println top)
+    ;; (println diff)
+    ;; (println (forS top diff ))))
+
+
+;; (defn gg [j]
+;;     (let [ma (nth graphD j)
+;;           i (map #(set (get ma %)) l)]
+;;       (reduce (intersection i))))
+
+;; (defn findInt [l]
+;;   (let [ma (nth graphD 2)
+;;         i (map #(set (get ma %)) l)]
+;;     (reduce intersection i)))
+
+
+
+;(findInt top))
+ 
+    ;(println diff)
+    ;; (set (map #(sssssssss)
+    ;;           (difference
+    ;;            (findInt top)
+    ;;            (set (first graphs)))))
+     
+    ;(println (first graphs))  
+    ;(println top)
+    ;(println (findInt top))
+
+
+
+    ;(for [i (findInt peek)]
+
+  ;(println (peek @Q))
+  ;(dosync (alter Q pop))
+  ;(println (peek @Q))
+   ; (println top)
+   ; (println (peek @Q))
+  ;)
+
+ ;(def S (ref (set (map #(set %) (vals(last graphs))))))
+
+ ;; S (ref (set (for [i (last graphs)]
+ ;;   ;                  (set (last i))))))
+
+ ;(while (not (empty? @Q)) 
   ;(println "A"))
-  
 
-  
-
-  )
-  
-  
-  
-  
-
-  
   ;; (while (not (nil? (peek @Q)))
   ;;   (println "a")
-    
-
   ;;   )
-    
-
-    
+  
   ;; (println (empty? @Q))
   ;; (println (nil? (peek @Q)))
   
@@ -117,22 +191,9 @@
   ;; (println (peek @Q))
   ;; (println (peek (pop @Q)))
 
-
-
-
 ;(println (not (nil? (peek @Q)))) 
   ;; (println @S))
- 
-
-
-(time (computeMaxBI graphD))
-
-
-
-
-
-
-
+;(time (computeMaxBI graphD))
   ;; (ref (-> clojure.lang.PersistentQueue/EMPTY
     ;;          (conj (doseq [i (list S)] i)))))
              ;(conj (for [i (list S)] i)))))
@@ -148,9 +209,6 @@
   
   ;; (println (list @S))
   ;; (dosync (alter S conj "this is a test"))
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; COMPUTING COMMUNITIES ;;
 ;------------------------;;
