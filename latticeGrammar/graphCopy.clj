@@ -60,7 +60,8 @@
     (reduce #(reduce kv %1 %2) {} mList))
   (let [hh (map #(for [i (last %)]
                    (hash-map i (first %))) l)
-        gh (mergeMatches (reduce concat hh))] gh))
+        gh (mergeMatches
+            (reduce concat hh))] gh))
 
 (defn readF [f]
   (def x (line-seq (reader f)))
@@ -70,7 +71,6 @@
         objectM (into {} objF)
         attributeM (buildRev objectM)]
     (doubleCheck atr objects objF)
-    ;(println atr objects objectM attributeM)
     [atr objects objectM attributeM]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -81,44 +81,86 @@
 (print "reading input file: ")
 ;(def graphD (time (readF "synConcepts.txt")))
 ;(def graphD (time (readF "example.txt")))
+
 (def graphD (time (readF "newcljtest.txt")))
+(def S (ref (set (for [i (last graphD)]
+                   (set (last i))))))
+(def Q (ref (into PersistentQueue/EMPTY @S)))
 
 (defn outside [l t]
   (defn gg [j]
-  (let [ma (nth graphD j)
-        i (map #(set (get ma %)) l)] i))
-  (case t "ext" (gg 3) "int" (gg 2)))
+    (let [ma (nth graphD j)
+          i (map #(set (get ma %)) l)]
+      (if-not (= i '()) i '(#{}))))
+  (def gg-memo (memoize gg))
+  (case t "ext" (gg-memo 3) "int" (gg-memo 2)))
 
 (defn forS [t s]
-  (try 
+  (defn forSN [t s] 
     (let [xV (outside s "ext") 
-          SN (set (map #(intersection % t) xV))] SN)
-    (catch Exception e
-      (println "caught"))))
-
+          SN (set (map #(intersection % t) xV))] SN))
+  (def forSN-memo (memoize forSN))
+  (forSN-memo t s))
+  
 (defn computeMaxBI [graphs]
-  (def S (ref (set (for [i (last graphs)]
-                    (set (last i))))))
-  (def Q (ref (into PersistentQueue/EMPTY @S)))
-  (defn CFun [] 
-    (let [top (peek @Q)
-          diff (difference
-                (set (first graphs))
-                (try (reduce intersection
-                             (outside top "int"))
-                     (catch Exception e ())))]
-      (do (dosync (alter Q pop))
-          (def D (difference (forS top diff) @S))
-          (dosync (alter S union D))
-          (doall (for [i D] (dosync (alter Q conj i)))))))
-  
-  (while (not (empty? @Q)) (CFun))
-  
-  (doall (for [i @S] (println i)))
-  (print "total bicliques found: ")
-  (println (count @S)))
+  (let [top (peek @Q)
+        diff (difference
+              (set (first graphs))
+              (reduce intersection
+                      (outside top "int")))]
+    (do (dosync (alter Q pop))
+        (def D (difference (forS top diff) @S))
+        (dosync (alter S union D))
+        (dorun (for [i D]
+                 (dosync (alter Q conj i)))
+               ))))
 
-(time (computeMaxBI graphD))
+;; (time (while (not (empty? @Q))
+;;         (computeMaxBI graphD)))
+
+(def thread-number 6)
+
+;; (time (while (not (empty? @Q))
+;;         (doall
+;;          (take thread-number
+;;                      (repeatedly
+;;                       #(doto (Thread. (computeMaxBI graphD) (.start))))))))
+(defn f [] (println "hello"))
+
+(time (doall (take thread-number (repeatedly #(doto (Thread. (computeMaxBI graphD)) (.start))))))
+
+;(doall (take threads-number (repeatedly #(doto (Thread. fn-name) (.start)))))
+
+
+    
+(doall (for [i @S] (println i)))
+(print "total bicliques found: ")
+(println (count @S))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; COMPUTING COMMUNITIES ;;
+;------------------------;;
+
+;============================
+  ;(CFun))
+  ;(while (not (empty? @Q))
+  ;  (CFun))
+
+;; (defn computeMaxBI []
+;;   (let [top (peek @Q)
+;;         diff (difference
+;;               (set (first graphD))
+;;               (reduce intersection
+;;                       (outside top "int")))]
+;;     (do (dosync (alter Q pop))
+;;         (def D (difference (forS top diff) @S))
+;;         (dosync (alter S union D))
+;;         (dorun (for [i D]
+;;                  (dosync (alter Q conj i)))))))
+;===============================
+
+
+
 
 
 
