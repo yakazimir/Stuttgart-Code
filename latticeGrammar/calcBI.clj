@@ -170,7 +170,8 @@
         (if-not (contains? @marked i)
           (dosync (alter marked conj i)
                   (alter gQ conj i))))))
-  (dosync (alter subG conj @marked)))
+  (dosync
+   (alter subG conj @marked)))
 
 (defn findA [l]
   (let [f (map #(future (breadth-f %)) l)]
