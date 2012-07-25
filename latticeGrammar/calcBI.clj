@@ -79,7 +79,7 @@
 (flush)
 (def graphD (time (readF "newcljtest.txt")))
 ;(def graphD (time (readF "newestCLJTEST.txt")))
-(def graphD (time (readF "largerCLJ.txt")))
+;(def graphD (time (readF "largerCLJ.txt")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; FINDING MAXIMAL BICLIQUES ;;
@@ -117,19 +117,19 @@
           (def D (difference (forS top diff) @S))
           (dosync (alter S union D))
           (doall (for [i D]
-                   (dosync (alter Q conj i))))))
-                   ;(and (dosync (alter Q conj i))
-                   ;    (println i))))))
+                   ;(dosync (alter Q conj i))))))
+                   (and (dosync (alter Q conj i))
+                        (println i))))))
     (if (empty? @Q)
       (reset! switch false)))
 
+;; (print "finding maximal bicliques: ")
+;; (flush)
+;; (time (while @switch
+;;         (computeMaxBI)))
+;; (print "total bicliques: ")
+;; (println (count @S))
 
-(print "finding maximal bicliques: ")
-(flush)
-(time (while @switch
-        (computeMaxBI)))
-(print "total bicliques: ")
-(println (count @S))
 ;(shutdown-agents)
 ;this gets an extra biclique 
 ;; (time (while @switch
@@ -143,7 +143,44 @@
 ;(println (count @S))
 ;(doall (for [i @S] (println i)))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; FINDING NETWORK COMMUNITIES ;;
 ;;-----------------------------;;
+
+
+(def attributeVals {"a" '(1 2) "b" '(1 2) "c" '(1 2)
+                    "d" '(3) "e" '(2 3) "f" '(3 4 5 6 7)
+                    "g" '(5 6) "h" '(9 10) "i" '(10 11)})
+(def objectVals {1 '("a" "b" "c") 2 '("a" "b" "c" "e")
+                 3 '("d" "e" "f") 4 '("f") 5 '("f" "g")
+                 6 '("g" "f") 7 '("f") 9 '("h")
+                 10 '("h" "i") 11 '("i")})
+
+(def total (merge attributeVals objectVals))
+(def subG (ref #{}))
+
+(defn breadth-f [start]
+  (def gQ (ref PersistentQueue/EMPTY)) 
+  (def marked (ref #{start}))
+  (dosync (alter gQ conj start))
+  (while (seq @gQ)
+    (let [top (peek @gQ)]
+      (dosync (alter gQ pop))
+      (doseq [i (get total top)]
+        (if-not (contains? @marked i)
+          (dosync
+           (alter marked conj i)
+           (alter gQ conj i))))))
+  (dosync
+   (alter subG conj @marked)))
+
+(defn findA [l]
+  (let [f (map #(future (breadth-f %)) l)]
+    (doseq [i f] @i)))
+
+(def vertex '(1 2 3 4 5 6 7 9 10 11))
+(time (findA vertex))
+(println @subG)
+(shutdown-agents)
+
+
