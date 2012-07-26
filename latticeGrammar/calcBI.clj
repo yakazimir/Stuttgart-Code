@@ -171,8 +171,9 @@
        (alter graphQueue pop))
       (doseq [i (get total top)]
         (if-not (contains? @marked i)
-          (dosync (alter marked conj i)
-                  (alter graphQueue conj i))))))
+          (dosync
+           (alter marked conj i)
+           (alter graphQueue conj i))))))
   (dosync
    (alter subG conj @marked)))
 
