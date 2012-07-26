@@ -73,7 +73,7 @@
         attributeM (buildRev objectM)]
     ;(future (doubleCheck atr objects objF))
     [atr objects objectM attributeM]))
- 
+
 
 (print "reading input file: ")
 (flush)
@@ -160,26 +160,28 @@
 (def subG (ref #{}))
 
 (defn breadth-f [start]
-  (def gQ (ref PersistentQueue/EMPTY)) 
+  (def graphQueue
+    (ref PersistentQueue/EMPTY)) 
   (def marked (ref #{start}))
-  (dosync (alter gQ conj start))
-  (while (seq @gQ)
-    (let [top (peek @gQ)]
-      (dosync (alter gQ pop))
+  (dosync
+   (alter graphQueue conj start))
+  (while (seq @graphQueue)
+    (let [top (peek @graphQueue)]
+      (dosync
+       (alter graphQueue pop))
       (doseq [i (get total top)]
         (if-not (contains? @marked i)
           (dosync (alter marked conj i)
-                  (alter gQ conj i))))))
+                  (alter graphQueue conj i))))))
   (dosync
    (alter subG conj @marked)))
+
 
 (defn findA [l]
   (let [f (map #(future (breadth-f %)) l)]
     (doseq [i f] @i)))
 
-(def vertex '(1 2 3 4 5 6 7 9 10 11))
-(time (findA vertex))
+(time (findA (keys objectVals)))
 (println @subG)
 (shutdown-agents)
-
 
