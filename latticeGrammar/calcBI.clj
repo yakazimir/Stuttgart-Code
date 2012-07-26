@@ -117,7 +117,6 @@
           (def D (difference (forS top diff) @S))
           (dosync (alter S union D))
           (doall (for [i D]
-                   ;(dosync (alter Q conj i))))))
                    (and (dosync (alter Q conj i))
                         (println i))))))
     (if (empty? @Q)
@@ -156,10 +155,13 @@
                  6 '("g" "f") 7 '("f") 9 '("h")
                  10 '("h" "i") 11 '("i")})
 
+;graph items 
 (def total (merge attributeVals objectVals))
 (def subG (ref #{}))
+(def total2 (merge (last graphD) (nth graphD 2)))
 
-(defn breadth-f [start]
+;breadth-first search 
+(defn breadth-f [start graph]
   (def graphQueue
     (ref PersistentQueue/EMPTY)) 
   (def marked (ref #{start}))
@@ -169,7 +171,7 @@
     (let [top (peek @graphQueue)]
       (dosync
        (alter graphQueue pop))
-      (doseq [i (get total top)]
+      (doseq [i (get graph top)]
         (if-not (contains? @marked i)
           (dosync
            (alter marked conj i)
@@ -177,12 +179,34 @@
   (dosync
    (alter subG conj @marked)))
 
-
-(defn findA [l]
-  (let [f (map #(future (breadth-f %)) l)]
+;parallelizes search 
+(defn findA [l graph]
+  (let [f (map #(future (breadth-f % graph)) l)]
     (doseq [i f] @i)))
 
-(time (findA (keys objectVals)))
-(println @subG)
+;toy example 
+;(time (findA (keys objectVals) total))
+;words in graph
+;(def words (keys (nth graphD 2)))
+;(time (findA (words)))
+
+;not parallel
+;; (time (breadth-f "purple goalie" total2))
+;; (time (breadth-f "kicks to" total2))
+;; (time (breadth-f "passes to" total2))
+;; (time (breadth-f "near midfield" total2))
+;; (time (breadth-f "to purple3" total2))
+
+
+
+
+(time (let [f (map #(future (breadth-f % total2)) (keys (nth graphD 2)))]
+  (doseq [i f] @i)))
+
+
+;printing disconnected parts and shutdown thread pools
+(println (str "disconnected subgraphs: "(count @subG)))
+(flush)
+;(println @subG)
 (shutdown-agents)
 
