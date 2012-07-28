@@ -52,7 +52,8 @@ class inputFiles(object):
                     ##CHECK THIS REPEATS IN WORD CONTEXTS
                     self.wordContexts.setdefault(z[i],[x[0]]).append(x[0])
             else: 
-                jk = {' '.join(z[start:end]):(start,end) for start in range(len(z)) for end in range(start+1,len(z)+1)}
+                jk = {' '.join(z[start:end]):(start,end) 
+                      for start in range(len(z)) for end in range(start+1,len(z)+1)}
                 for (subpat,ind) in jk.items(): 
                     con = str((' '.join(z[:ind[0]]), ' '.join(z[ind[1]:])))
                     self.contexts[con] = self.contexts.setdefault(con,0)+1
@@ -83,12 +84,41 @@ class inputFiles(object):
             print objAttrP
             for (i,j) in self.words.items(): 
                 ##STILL HAS SEMANTIC INFO
-                wO2 = j+self.wordConcepts(i) #+["null"]
-                print i+"--"+";".join(wO2)
+                #wO2 = j+self.wordConcepts(i) #+["null"]
+                #print i+"--"+";".join(wO2)
+                print i+"--"+";".join(j)
+
+            # #print (len(filt.keys()))
+            # #print len(wO) 
+
+        elif n == "biC": 
+            for (w,g) in self.words.items(): 
+                for i in Set(g): 
+                   
+                    print str(self.contexts.keys().index(i))+" "+\
+                        str(self.words.keys().index(w))
+
+                    # print "%-0d \t %-0d" % (self.contexts.keys().index(i),
+                    #                       self.words.keys().index(w))
+
+
+                    #print self.contexts.keys().index(i),
+                    #print self.words.keys().index(w)
+
+                    #print self.contexts.keys().index(i)
+                    #print '{0:10} {1:10}'.format(w,i)
+                    # try: 
+                    #     print '{0:2d} {1:3d}'.format(self.words.keys().index(w),
+                    #                                  self.wordContexts.keys().index(i)) 
+                    # except: print "out"
         else:
             try:
-                topNCon = [i[1] for i in self.sortContexts()[:n[1]] if i[0] > 2]
-                topNWords = [i[1] for i in self.sortWords()[:n[0]] if i[0] > 10]
+                #topNCon = [i[1] for i in self.sortContexts()[:n[1]] if i[0] > 2]
+                #topNWords = [i[1] for i in self.sortWords()[:n[0]] if i[0] > 10]
+
+                topNCon = [i[1] for i in self.sortContexts()[:n[1]] if i[0] > 1]
+                topNWords = [i[1] for i in self.sortWords()[:n[0]] if i[0] > 1]
+
                 relContexts = list(Set(sum([self.words[i] for i in topNWords],[])).intersection(Set(topNCon))) 
                 filt = dict((key,value) for (key,value) in {on(i,relContexts)[0]:on(i,relContexts)[1] for 
                                                         i in topNWords}.iteritems() if key != None)
@@ -99,13 +129,15 @@ class inputFiles(object):
                 print "objects:"+";".join(filt)   
                 print objAttrP
                 for (w,j) in filt.iteritems():
-                    tP = ['='.join(z) for z in self.wordConcepts(w)]
-                    print w+"."+str(self.wordCounts[w])+"--"+";".join(j)+"<<"+re.sub('\n','',';'.join(tP))
-                
-            ##FOR PRINTING NUMBER OF WORDS
-            #print len(filt.keys())
-            ###FOR PRINTING NUMBER OF CONTEXTS
-            #print len(wO)
+                    ##FOR THE SCALA FILE 
+                    # tP = ['='.join(z) for z in self.wordConcepts(w)]
+                    # print w+"."+str(self.wordCounts[w])+"--"+";".join(j)+"<<"+re.sub('\n','',';'.join(tP))
+                    print w+"--"+";".join(j)
+
+                ##FOR PRINTING NUMBER OF WORDS
+                #print len(filt.keys())
+                ###FOR PRINTING NUMBER OF CONTEXTS
+                #print len(wO)
             except: print "input must be tuple (#Words,#Contexts)"                    
     def wordConcepts(self, n=None):
         if n == None: 
@@ -124,10 +156,32 @@ class inputFiles(object):
 
 def main(): 
     file1 = inputFiles('sSentences.txt', 'contexts.txt')
-    file1.makeFile((500,2000))
+    #file1.makeFile((500, 2000))
+
+    file1.makeFile((5000,10000))
+    #file1.makeFile((4000, 10000))
+    #file1.makeFile("biC")
+    #file1.makeFile("biC")
 
 
+##WITHOUT SEMANTIC INFO
+main()
 
+file1 = inputFiles('sSentences.txt', 'contexts.txt')
+
+# for w in file1.words.keys():     
+#     # print '{0:2d}  {1}'.format(file1.words.keys().index(w), 
+#     #                              w)
+#     print str(file1.words.keys().index(w))+" "+\
+#         str(w)
+ 
+# for w in file1.contexts.keys(): 
+    
+#     print str(file1.contexts.keys().index(w))+" "+\
+#         str(file1.contexts.keys().index(w))
+
+#      print '{0:2d}  {1}'.format(file1.contexts.keys().index(w), 
+#                                 file1.contexts.keys().index(w))
 
 
 
