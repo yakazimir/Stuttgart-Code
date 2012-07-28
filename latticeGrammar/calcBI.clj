@@ -57,7 +57,7 @@
   (defn kv [bag [k v]]
     (update-in bag [k] conj v))
   (defn mergeMatches [mList]
-    (reduce #(reduce kv %1 %2) {} mList))
+    (doall (reduce #(reduce kv %1 %2) {} mList)))
   (let [hh (map #(for [i (last %)]
                    (hash-map i (first %))) l)
         gh (mergeMatches
@@ -147,16 +147,16 @@
 ;;-----------------------------;;
 
 
-(def attributeVals {"a" '(1 2) "b" '(1 2) "c" '(1 2)
-                    "d" '(3) "e" '(2 3) "f" '(3 4 5 6 7)
-                    "g" '(5 6) "h" '(9 10) "i" '(10 11)})
-(def objectVals {1 '("a" "b" "c") 2 '("a" "b" "c" "e")
-                 3 '("d" "e" "f") 4 '("f") 5 '("f" "g")
-                 6 '("g" "f") 7 '("f") 9 '("h")
-                 10 '("h" "i") 11 '("i")})
+;; (def attributeVals {"a" '(1 2) "b" '(1 2) "c" '(1 2)
+;;                     "d" '(3) "e" '(2 3) "f" '(3 4 5 6 7)
+;;                     "g" '(5 6) "h" '(9 10) "i" '(10 11)})
+;; (def objectVals {1 '("a" "b" "c") 2 '("a" "b" "c" "e")
+;;                  3 '("d" "e" "f") 4 '("f") 5 '("f" "g")
+;;                  6 '("g" "f") 7 '("f") 9 '("h")
+;;                  10 '("h" "i") 11 '("i")})
 
 ;graph items 
-(def total (merge attributeVals objectVals))
+;; (def total (merge attributeVals objectVals))
 (def subG (ref #{}))
 (def total2 (merge (last graphD) (nth graphD 2)))
 
@@ -172,7 +172,7 @@
       (dosync
        (alter graphQueue pop))
       (doseq [i (get graph top)]
-        (if-not (contains? @marked i)
+        (if-not (contains? @marked i)     
           (dosync
            (alter marked conj i)
            (alter graphQueue conj i))))))
@@ -183,6 +183,14 @@
 (defn findA [l graph]
   (let [f (map #(future (breadth-f % graph)) l)]
     (doseq [i f] @i)))
+
+
+
+
+
+
+
+
 
 ;toy example 
 ;(time (findA (keys objectVals) total))
@@ -198,9 +206,9 @@
 ;; (time (breadth-f "to purple3" total2))
 
 
-
-
-(time (let [f (map #(future (breadth-f % total2)) (keys (nth graphD 2)))]
+(time
+ (let [f (map #(future (breadth-f % total2))
+              (keys (nth graphD 2)))]
   (doseq [i f] @i)))
 
 
@@ -209,4 +217,9 @@
 (flush)
 ;(println @subG)
 (shutdown-agents)
+
+(doseq [i @subG]
+  (println "*************")
+  (doseq [j i]
+    (println j)))
 
