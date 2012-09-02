@@ -180,9 +180,9 @@
    (alter subG conj @marked)))
 
 ;parallelizes search 
-(defn findA [l graph]
-  (let [f (map #(future (breadth-f % graph)) l)]
-    (doseq [i f] @i)))
+;; (defn findA [l graph]
+;;   (let [f (map #(future (breadth-f % graph)) l)]
+;;     (doseq [i f] @i)))
 
 
 
@@ -218,8 +218,8 @@
 ;(println @subG)
 (shutdown-agents)
 
-(doseq [i @subG]
-  (println "*************")
-  (doseq [j i]
-    (println j)))
+;; (doseq [i @subG]
+;;   (println "*************")
+;;   (doseq [j i]
+;;     (println j)))
 
