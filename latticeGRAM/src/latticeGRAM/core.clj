@@ -3,15 +3,23 @@
 (use '[clojure.java.io :only (reader)])
 (use '[clojure.set])
 (import '[clojure.lang PersistentQueue])
-;(use 'clojure.contrib.math)
+
+
+(def banner  (str "\t*************************\n"
+                  "\t***COMMUNITY DETECTION***\n"
+                  "\t*************************\n"))
+(println)                    
+(println banner)
 
 ;(def inputFile (line-seq (reader "../../data/practiceFile.txt")))
 ;(def inputFile (line-seq (reader "../../data/larger.txt")))
 (def inputFile (line-seq (reader "../../data/futbolData/output/window3.txt")))
+
 (defn re-match? [re s] (not (nil? (re-find re s))))
 (defn objectV? [s] (re-match? #"^[\w+\s*]+\-\-" s))
 (def words (ref {}))
 (def attr (ref {}))
+
 ;---------------------
 (defn prog-bar [percent]
   (let [bar (StringBuilder. "[")] 
@@ -44,9 +52,11 @@
                      (split (last i) #";")))
       (deref rev))))
 
-(print "reading input file: ")
+(print "reading input file ...")
+(flush)
 (time (readF inputFile))
-
+(flush)
+(println)
 ;------------------
 ;--BREADTH FIRST---
 ;------------------
@@ -86,7 +96,8 @@
   (let [size (count wordsL)]
     (doseq [i wordsL]
       (let [poS (float (/ @iCount size))
-            uS (future (prog-bar (* 100 poS)))]
+            uS (future (prog-bar
+                        (read-string (format "%.0f" (* 100 poS)))))]
         (cond (not (contains? @seenWords i))
               (breadth-f i))
         (dosync (alter iCount inc))
@@ -96,21 +107,23 @@
 ;----FOR PRINTING-----
 ;---------------------
 
-(def banner  (str "*************************\n"
-                  "****COMMUNITY DETECTION\n"
-                  "*************************\n"))
-(println)                    
-(println banner)
+(println "##########################")
 (println "GRAPH DETAILS:")
-(println "\t number of nodes: " (+ (count wordList) (count @attr)))
-(println  "\t number of words: " (count wordList))
-(println)
+(println "number of nodes: " (+ (count wordList) (count @attr)))
+(println  "number of words: " (count wordList))
+(println "##########################")
+
 (println)
 (println "finding subgraphs ...")
-(time (findSubGraphs wordList))
 
-(println "# disconnected subgraphs: " (count @subG))
+(time (findSubGraphs wordList))
 (println)
+(println "##########################")
+(println "# subgraphs found: " (count @subG))
+(println "##########################")
+(println)
+(println)
+
 (shutdown-agents)
      
 
