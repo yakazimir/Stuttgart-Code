@@ -1,0 +1,13 @@
+# latticeGRAM
+
+clojure code for implementing distributional lattice grammar
+
+## Usage
+
+main code in src/../core.clj
+
+## License
+
+Copyright (C) 2012 KYLE RICHARDSON
+
+Distributed under the Eclipse Public License, the same as Clojure.
