@@ -43,16 +43,26 @@
             (dosync (alter attr assoc h [v]))))))
 
 (defn readF [f]
+  (def iCount1 (ref 1))
   (let [cut (filter objectV? f)
-        v1 (map #(split % #"--") cut)]
+        v1 (map #(split % #"--") cut)
+        si (count v1)]
     (doseq [i v1]
-      (def rev (future (findR i)))
-      (dosync (alter words assoc
-                     (first i)
-                     (split (last i) #";")))
-      (deref rev))))
+      (let [poS (float (/ @iCount1 si))
+            uS (future (prog-bar
+                        (read-string
+                         (format "%.0f" (* 100 poS)))))]
+        (def rev (future (findR i)))
+        (dosync (alter words assoc
+                       (first i)
+                       (split (last i) #";")))
+        (deref uS)
+        (deref rev)
+        (dosync (alter iCount1 inc))))
+    (println)))
 
 (print "reading input file ...")
+(println)
 (flush)
 (time (readF inputFile))
 (flush)
@@ -90,14 +100,14 @@
      (alter subG conj wonly)
      (alter seenWords union wonly))))
 
-(def iCount (ref 1))
-
 (defn findSubGraphs [wordsL]
+  (def iCount (ref 1))
   (let [size (count wordsL)]
     (doseq [i wordsL]
       (let [poS (float (/ @iCount size))
             uS (future (prog-bar
-                        (read-string (format "%.0f" (* 100 poS)))))]
+                        (read-string
+                         (format "%.0f" (* 100 poS)))))]
         (cond (not (contains? @seenWords i))
               (breadth-f i))
         (dosync (alter iCount inc))
@@ -116,10 +126,17 @@
 (println)
 (println "finding subgraphs ...")
 
+
+
 (time (findSubGraphs wordList))
 (println)
 (println "##########################")
-(println "# subgraphs found: " (count @subG))
+(println "num subgraphs found: " (count @subG))
+;(println "aver graph size : " (float (/ (reduce +))
+
+(def sum (reduce + (doall (map #(count %) @subG))))
+(println sum)
+(println "avg graph size :" (float (/ sum (count @subG))))
 (println "##########################")
 (println)
 (println)
