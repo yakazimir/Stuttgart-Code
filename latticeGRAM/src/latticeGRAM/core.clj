@@ -1,8 +1,10 @@
-(ns latticeGRAM.core)
-(use '[clojure.string :only (split)])
-(use '[clojure.java.io :only (reader)])
-(use '[clojure.set])
-(import '[clojure.lang PersistentQueue])
+(ns ^{:doc "main file for doing community analysis"
+      :author "Kyle Richardson"}
+  latticeGRAM.core
+  (:use [clojure.set]
+        [clojure.java.io :only [reader]]
+        [latticeGram.inputReader :only [ioMain progBar]])
+  (:import [clojure.lang PersistentQueue]))
 
 
 (def banner  (str "\t*************************\n"
@@ -11,138 +13,102 @@
 (println)                    
 (println banner)
 
-;(def inputFile (line-seq (reader "../../data/practiceFile.txt")))
-;(def inputFile (line-seq (reader "../../data/larger.txt")))
-(def inputFile (line-seq (reader "../../data/futbolData/output/window3.txt")))
+;files
+(def fileLoc (line-seq (reader "../../data/futbolData/output/window3.txt")))
+;(def fileLoc (line-seq (reader "../../data/larger.txt")))
+;(def fileLoc (line-seq (reader "../../data/practiceFile.txt")))
 
-(defn re-match? [re s] (not (nil? (re-find re s))))
-(defn objectV? [s] (re-match? #"^[\w+\s*]+\-\-" s))
-(def words (ref {}))
-(def attr (ref {}))
 
-;---------------------
-(defn prog-bar [percent]
-  (let [bar (StringBuilder. "[")] 
-    (doseq [i (range 50)]
-      (cond (< i (int (/ percent 2))) (.append bar "=")
-            (= i (int (/ percent 2))) (.append bar ">")
-            :else (.append bar " ")))
-    (.append bar (str "] " percent "%     "))
-    (print "\r" (.toString bar))
-    (flush)))
-;--------------------
-;---READING FILES----
-;--------------------
-(defn findR [i]
-  (doseq [h (split (last i) #";")]
-    (let [v (first i)
-          new (union (get @attr h) [v])]
-      (cond (contains? @attr h)
-            (dosync (alter attr merge {h new}))
-            :else
-            (dosync (alter attr assoc h [v]))))))
 
-(defn readF [f]
-  (def iCount1 (ref 1))
-  (let [cut (filter objectV? f)
-        v1 (map #(split % #"--") cut)
-        si (count v1)]
-    (doseq [i v1]
-      (let [poS (float (/ @iCount1 si))
-            uS (future (prog-bar
-                        (read-string
-                         (format "%.0f" (* 100 poS)))))]
-        (def rev (future (findR i)))
-        (dosync (alter words assoc
-                       (first i)
-                       (split (last i) #";")))
-        (deref uS)
-        (deref rev)
-        (dosync (alter iCount1 inc))))
-    (println)))
 
-(print "reading input file ...")
-(println)
-(flush)
-(time (readF inputFile))
-(flush)
-(println)
+
 ;------------------
 ;--BREADTH FIRST---
 ;------------------
-(def total2 (merge @words @attr))
-(def subG (ref #{}))
-(def seenWords (ref #{}))
-(def wordList (keys @words))
+;; (def total2 (merge @words @attr))
+;; (def subG (ref #{}))
+;; (def seenWords (ref #{}))
+;; (def wordList (keys @words))
 
-(defn breadth-f [start]
-  "BREADTH FIRST SEARCH"
+;; (defn breadth-f [start]
+;;   "BREADTH FIRST SEARCH"
   
-  (def graphQueue
-    (ref PersistentQueue/EMPTY))
-  (def marked
-    (ref #{start}))
-  (dosync
-   (alter graphQueue conj start))
+;;   (def graphQueue
+;;     (ref PersistentQueue/EMPTY))
+;;   (def marked
+;;     (ref #{start}))
+;;   (dosync
+;;    (alter graphQueue conj start))
   
-  (while (seq @graphQueue)
-    (let [top (peek @graphQueue)]
-      (dosync
-       (alter graphQueue pop))
-      (doseq [i (get total2 top)]
-        (if-not (contains? @marked i)
-          (dosync
-           (alter marked conj i)
-           (alter graphQueue conj i))))))
+;;   (while (seq @graphQueue)
+;;     (let [top (peek @graphQueue)]
+;;       (dosync
+;;        (alter graphQueue pop))
+;;       (doseq [i (get total2 top)]
+;;         (if-not (contains? @marked i)
+;;           (dosync
+;;            (alter marked conj i)
+;;            (alter graphQueue conj i))))))
 
-  (let [wonly (intersection @marked (set wordList))]
-    (dosync
-     (alter subG conj wonly)
-     (alter seenWords union wonly))))
+;;   (let [wonly (intersection @marked (set wordList))]
+;;     (dosync
+;;      (alter subG conj wonly)
+;;      (alter seenWords union wonly))))
 
-(defn findSubGraphs [wordsL]
-  (def iCount (ref 1))
-  (let [size (count wordsL)]
-    (doseq [i wordsL]
-      (let [poS (float (/ @iCount size))
-            uS (future (prog-bar
-                        (read-string
-                         (format "%.0f" (* 100 poS)))))]
-        (cond (not (contains? @seenWords i))
-              (breadth-f i))
-        (dosync (alter iCount inc))
-        (deref uS)))
-    (println)))   
+;; (defn findSubGraphs [wordsL]
+;;   (def iCount (ref 1))
+;;   (let [size (count wordsL)]
+;;     (doseq [i wordsL]
+;;       (let [poS (float (/ @iCount size))
+;;             uS (future (prog-bar
+;;                         (read-string
+;;                          (format "%.0f" (* 100 poS)))))]
+;;         (cond (not (contains? @seenWords i))
+;;               (breadth-f i))
+;;         (dosync (alter iCount inc))
+;;         (deref uS)))
+;;     (println)))   
 
-;----FOR PRINTING-----
-;---------------------
+;; ;----FOR PRINTING-----
+;; ;---------------------
 
-(println "##########################")
-(println "GRAPH DETAILS:")
-(println "number of nodes: " (+ (count wordList) (count @attr)))
-(println  "number of words: " (count wordList))
-(println "##########################")
+;; (println "##########################")
+;; (println "GRAPH DETAILS:")
+;; (println "number of nodes: " (+ (count wordList) (count @attr)))
+;; (println  "number of words: " (count wordList))
+;; (println "##########################")
 
-(println)
-(println "finding subgraphs ...")
+;; (println)
+;; (println "finding subgraphs ...")
 
 
 
-(time (findSubGraphs wordList))
-(println)
-(println "##########################")
-(println "num subgraphs found: " (count @subG))
-;(println "aver graph size : " (float (/ (reduce +))
+;; (time (findSubGraphs wordList))
+;; (println)
+;; (println "##########################")
+;; (println "num subgraphs found: " (count @subG))
+;; ;(println "aver graph size : " (float (/ (reduce +))
 
-(def sum (reduce + (doall (map #(count %) @subG))))
-(println sum)
-(println "avg graph size :" (float (/ sum (count @subG))))
-(println "##########################")
-(println)
-(println)
+;; (def sum (reduce + (doall (map #(count %) @subG))))
+;; (println sum)
+;; (println "avg graph size :" (float (/ sum (count @subG))))
+;; (println "##########################")
+;; (println)
+;; (println)
 
-(shutdown-agents)
+;; (shutdown-agents)
      
+;$$$$$$$$$$$$$$$$
+
+
+
+
+
+
+
+
+
+
 
 
 
