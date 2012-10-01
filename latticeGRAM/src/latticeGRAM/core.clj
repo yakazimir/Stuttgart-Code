@@ -1,22 +1,65 @@
 (ns ^{:doc "main file for doing community analysis"
       :author "Kyle Richardson"}
   latticeGRAM.core
+  (:gen-class)
   (:use [clojure.set]
         [clojure.java.io :only [reader]]
-        [latticeGram.inputReader :only [ioMain progBar]])
-  (:import [clojure.lang PersistentQueue]))
-
+        [latticeGRAM.inputReader :only [readF]]))
 
 (def banner  (str "\t*************************\n"
                   "\t***COMMUNITY DETECTION***\n"
-                  "\t*************************\n"))
-(println)                    
-(println banner)
+                  "\t*************************\n")) 
 
-;files
-(def fileLoc (line-seq (reader "../../data/futbolData/output/window3.txt")))
-;(def fileLoc (line-seq (reader "../../data/larger.txt")))
-;(def fileLoc (line-seq (reader "../../data/practiceFile.txt")))
+(defn -main [& args]
+  (println banner)
+  (def fileLoc (line-seq (reader (first args))))
+  (println "reading input file ...")
+  (flush)
+  
+  (time (readF fileLoc))
+  (println)
+
+  (shutdown-agents))
+
+
+
+
+;(shutdown-agents)
+  ;(ioMain fileLoc))
+
+;(shutdown-agents)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;; (def banner  (str "\t*************************\n"
+;;                   "\t***COMMUNITY DETECTION***\n"
+;;                   "\t*************************\n"))
+;; (println)                    
+;; (println banner)
+
+;; ;files
+;; (def fileLoc (line-seq (reader "../../data/futbolData/output/window3.txt")))
+;; ;(def fileLoc (line-seq (reader "../../data/larger.txt")))
+;; ;(def fileLoc (line-seq (reader "../../data/practiceFile.txt")))
 
 
 

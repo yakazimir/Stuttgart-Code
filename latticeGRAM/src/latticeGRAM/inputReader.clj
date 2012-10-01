@@ -32,7 +32,7 @@
   (let [poS (float (/ item size))
         uS (read-string
             (format "%.0f" (* 100 poS)))]
-    (do (printBar uS))))
+    (printBar uS)))
 
 (defn findR [i]
   (doseq [h (split (last i) #";")
@@ -51,6 +51,7 @@
         v1 (map #(split % #"--") cut)
         si (count v1)]
     (doseq [i v1]
+      ;(println i)
       (let [prog (future (progBar @iCount1 si))]
         (def rev (future findR i))
         (dosync (alter words assoc
@@ -60,17 +61,18 @@
         (deref prog)
         (deref rev)))
     (println)))
-
+               
 (defn ioMain [fileLoc]
   (readF fileLoc)
-  [@words @attr])
-  
- 
-;(def fileLoc
-                                        ;  (line-seq (reader
-;"../../data/futbolData/output/window3.txt")))
-;(time (ioMain fileLoc))
-;(shutdown-agents)
+  (do [@words @attr]))
+
+
+
+;for running locally
+;; (def fileLoc
+;;   (line-seq (reader "../../data/futbolData/output/window3.txt")))
+;; (time (ioMain fileLoc))
+;; (shutdown-agents)
   
         
   
